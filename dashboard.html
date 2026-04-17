@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Portefeuille - Lean</title>
+    <link rel="stylesheet" href="style.css"> 
+    <style>
+        /* (Tes styles CSS restent identiques, ils sont très bien) */
+        .solde-container { display: flex; align-items: baseline; gap: 8px; margin-top: 5px; }
+        .mission-banner { position: relative; overflow: hidden; padding: 0 !important; height: 120px; border-radius: 12px; margin: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .slider-container { display: flex; width: 300%; height: 100%; animation: slide 12s infinite ease-in-out; }
+        .slider-container img { width: 33.33%; height: 100%; object-fit: cover; }
+        @keyframes slide { 0% { transform: translateX(0%); } 30% { transform: translateX(0%); } 33% { transform: translateX(-33.33%); } 63% { transform: translateX(-33.33%); } 66% { transform: translateX(-66.66%); } 96% { transform: translateX(-66.66%); } 100% { transform: translateX(0%); } }
+        .banner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); display: flex; align-items: center; padding: 15px; pointer-events: none; }
+        .history-section { margin: 10px 20px; }
+        .history-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        #liste-transactions { background: #fff; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 5px; margin-bottom: 30px; }
+        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f9f9f9; }
+        .transaction-item:last-child { border-bottom: none; }
+        .trans-info { display: flex; flex-direction: column; }
+        .trans-name { font-size: 14px; font-weight: bold; color: #2c3e50; }
+        .trans-date { font-size: 11px; color: #95a5a6; }
+        .trans-amount { font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-top">
+                <a href="menu.html" class="burger-menu"><span></span><span></span><span></span></a>
+                <div class="lang-container">
+                    <select class="lang-select" id="langPicker">
+                        <option value="fr">🇫🇷 fr</option>
+                        <option value="en">🇺🇸 en</option>
+                    </select>
+                </div>
+            </div>
+            <div class="balance-container">
+                <span class="balance"><p><span style="color: yellow;">Le</span>an</p></span>
+            </div>
+        </header>
+        
+        <div class="qr-card">
+            <div class="card-horizontal-container">
+                <div class="qr-placeholder">
+                    <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=Lean" alt="QR Code">
+                    <div class="scanner-text">📷 Scanner</div>
+                </div>
+                <div class="card-details">
+                    <div id="user-id-display" style="font-weight: bold; color: black; font-size: 18px;">ID: --</div>
+                    <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">--</div>
+                    <div class="solde-container">
+                        <span class="label" style="color: gray; font-size: 14px;">Solde:</span>
+                        <span class="value" style="font-size: 22px; font-weight: bold; color: #333;">
+                            <span id="solde">0.00</span> <small style="font-size: 14px;">XOF</small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<nav class="action-grid">
+            <a href="transfert.html" class="action-item"><div class="icon blue">👤</div><span>Transfert</span></a>
+            <a href="paiements.html" class="action-item"><div class="icon orange">🛒</div><span>Paiements</span></a>
+            <a href="lean.html" class="action-item"><div class="icon gold">🏛️</div><span>Lean</span></a>
+            <a href="carte.html" class="action-item"><div class="icon yellow">💳</div><span>Carte</span></a>
+        </nav>
+
+        <div class="mission-banner" onclick="location.href='missions.html'">
+            <div class="slider-container">
+                <img src="images/offre1.jpg" alt="Offre 1">
+                <img src="images/offre2.jpg" alt="Offre 2">
+                <img src="images/offre3.jpg" alt="Offre 3">
+            </div>
+            <div class="banner-overlay">
+                <div class="text-content" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">
+                    <p style="margin: 0; font-size: 11px;">Cliquez pour voir les offres</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">Activités récentes</div>
+            <div id="liste-transactions">
+                <p style="text-align: center; padding: 20px; font-size: 12px; color: gray;">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // URL mise à jour pour fonctionner en ligne
+    const SERVER_URL = "https://lean-38wq.onrender.com";
+
+    async function chargerDonnees() {
+        const userId = localStorage.getItem('userId'); 
+        const emailStocke = localStorage.getItem('userEmail');
+
+        if (!userId || userId === "undefined") {
+            window.location.href = "login.html"; // Redirection si pas connecté
+            return;
+        }
+
+        document.getElementById('user-id-display').textContent = "ID: " + userId;
+        document.getElementById('user-email-display').textContent = emailStocke || "Utilisateur Lean";
+
+        try {
+            const response = await fetch(${SERVER_URL}/api/solde/${userId});
+            const data = await response.json();
+
+            if (data.success) {
+                const montant = parseFloat(data.solde) || 0;
+                document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {minimumFractionDigits: 2});
+                
+                // QR Code dynamique basé sur l'ID réel
+                document.getElementById('qr-image').src = https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${userId};
+            }
+        } catch (error) {
+            console.error("Erreur chargement solde");
+        }
+
+        chargerHistorique(userId);
+    }
+
+    async function chargerHistorique(userId) {
+        const container = document.getElementById('liste-transactions');
+        try {
+            const response = await fetch(${SERVER_URL}/api/historique/${userId});
+            const data = await response.json();
+
+            if (data.success && data.transactions && data.transactions.length > 0) {
+                container.innerHTML = ""; 
+                
+                data.transactions.forEach(t => {
+                    // Vérifie si l'utilisateur actuel est l'expéditeur
+                    const isOut = t.expediteur_id == userId;
+                    const couleur = isOut ? "#e74c3c" : "#2ecc71";
+                    const signe = isOut ? "-" : "+";
+                    
+                    const nomAffiche = isOut 
+                        ? "Envoyé à: " + (t.nom_destinataire || t.destinataire_id) 
+                        : "Reçu de: " + (t.nom_expediteur || t.expediteur_id);
+                    
+                    container.innerHTML += `
+                        <div class="transaction-item">
+
+<div class="trans-info">
+                                <span class="trans-name">${nomAffiche}</span>
+                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                            <div class="trans-amount" style="color: ${couleur};">
+                                ${signe} ${t.montant.toLocaleString()} XOF
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité pour le moment.</p>";
+            }
+        } catch (error) {
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Impossible de charger l'historique.</p>";
+        }
+    }
+    window.onload = chargerDonnees;
+
+<script>
+        // 1. On récupère les données sauvegardées
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        // 2. Si l'utilisateur n'existe pas, on le renvoie à la connexion
+        if (!user) {
+            window.location.href = 'index.html';
+        } else {
+            // 3. On affiche l'ID (Assure-toi que l'ID dans ton HTML est 'user-id-display')
+            const idDisplay = document.getElementById('user-id-display');
+            if (idDisplay) {
+                idDisplay.textContent = user.id;
+            }
+
+            // 4. On affiche le solde
+            const soldeDisplay = document.getElementById('solde');
+            if (soldeDisplay) {
+                soldeDisplay.textContent = parseFloat(user.solde || 0).toFixed(2);
+            }
+            
+            // On lance le reste de tes fonctions si elles existent
+            if (typeof chargerHistorique === "function") {
+                chargerHistorique(user.id);
+            }
+        }
+   
+
+</script>
+</body>
+</html>
