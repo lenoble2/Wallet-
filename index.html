@@ -98,61 +98,48 @@
         <div><a href="login.html"></a></div>
     </div>
 </div>
+<div class="user-info">
+    <div class="user-id">ID: <span id="displayID">--</span></div>
+    <div id="displayUserName">Chargement...</div>
+    <div>Solde: <strong id="displaySolde">0.00</strong> XOF</div>
+</div>
 
 <script>
-    const form = document.getElementById('registerForm');
-    const btn = document.getElementById('btnSInscrire');
-    
-    // URL mise à jour pour correspondre à votre backend
-    const API_URL = "https://lean3.onrender.com";
+document.addEventListener('DOMContentLoaded', async () => {
+    const displayID = document.getElementById('displayID');
+    const displaySolde = document.getElementById('displaySolde');
 
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        
-        const nom = document.getElementById('nom').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const pin = document.getElementById('pin').value.trim();
-        const confirmPin = document.getElementById('confirmPin').value.trim();
+    // 1. Lecture de l'ID stocké
+    const savedId = localStorage.getItem('userId');
 
-        if (pin !== confirmPin) {
-            alert("Les codes PIN ne correspondent pas.");
-            return;
-        }
+    // DIAGNOSTIC : Si l'ID est vide, on affiche une alerte pour comprendre
+    if (!savedId) {
+        console.error("Aucun ID trouvé dans localStorage");
+        displayID.innerText = "Non connecté";
+        // Optionnel : rediriger vers login si vide
+        // window.location.href = 'login.html';
+        return;
+    }
 
-        btn.disabled = true;
-        btn.innerText = "Création...";
+    // 2. Affichage immédiat du format 08000 + ID
+    // On force la conversion en texte pour éviter les erreurs
+    displayID.innerText = "08000" + savedId.toString();
 
-        try {
-            const response = await fetch(`${API_URL}/api/inscription`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, email, pin })
-            });
+    // 3. Récupération du solde sur le serveur
+    try {
+        const API_URL = "https://lean3.onrender.com";
+        const response = await fetch(${API_URL}/api/user/${savedId});
+        const data = await response.json();
 
-            const data = await response.json();
+        if (data.success && data.user) {
+            displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR');
+        }
+    } catch (error) {
+        console.error("Erreur récupération solde:", error);
+    }
+});
+</script>
 
-            if (data.success) {
-                // Stockage des infos et redirection vers dashboard.html
-                if (data.user) {
-                    localStorage.setItem('userId', data.user.id);
-                    localStorage.setItem('userName', data.user.nom);
-                }
-                window.location.href = 'dashboard.html';
-            } else {
-                alert("Erreur : " + (data.message || "Impossible de créer le compte"));
-                resetButton();
-            }
-        } catch (error) {
-            console.error("Erreur:", error);
-            alert("Erreur de connexion au serveur Render.");
-            resetButton();
-        }
-    };
-
-    function resetButton() {
-        btn.disabled = false;
-        btn.innerText = "S'inscrire";
-    }
 </script>
 </body>
 </html>
