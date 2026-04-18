@@ -106,8 +106,11 @@ app.post('/api/transferer', (req, res) => {
 });
 
 // 4. Servir la page d'accueil (Dashboard ou Index)
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.get('/api/user/:id', async (req, res) => {
+    const userId = req.params.id;
+    // Requête SQL pour récupérer l'utilisateur dans MariaDB ou Supabase
+    // SELECT id, nom, email, solde FROM users WHERE id = ?
+    // ... renvoyer le résultat en JSON
 });
 
 // --- LANCEMENT DU SERVEUR ---

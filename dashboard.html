@@ -148,6 +148,10 @@
                     <div id="user-id-display" style="font-weight: bold; color: black; font-size: 18px;">ID: --</div>
                     <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">--</div>
 
+<div class="user-id">ID: <span id="displayID">--</span></div>
+<div class="user-balance">Solde: <span id="displaySolde">---</span> XOF</div>
+
+
                     <div class="solde-container">
                         <span class="label" style="color: gray; font-size: 14px;">Solde:</span>
                         <span class="value" style="font-size: 22px; font-weight: bold; color: #333;">
@@ -580,6 +584,42 @@ margin-left: 0px;
     
 </style>
 <script>
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const userId = localStorage.getItem('userId');
+    const displayID = document.getElementById('displayID');
+    const displaySolde = document.getElementById('displaySolde');
+
+    if (!userId) {
+        // Si pas d'ID, on renvoie vers la connexion
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 1. Affichage de l'ID formaté (ex: 080002)
+    displayID.innerText = "08000" + userId;
+
+    // 2. Récupération du solde depuis l'API
+    try {
+        const API_URL = "https://lean3.onrender.com";
+        const response = await fetch(${API_URL}/api/user/${userId});
+        const data = await response.json();
+
+        if (data.success) {
+            // Affichage du solde formaté
+            displaySolde.innerText = data.user.solde.toLocaleString('fr-FR');
+        } else {
+            displaySolde.innerText = "0";
+        }
+    } catch (error) {
+        console.error("Erreur solde:", error);
+        displaySolde.innerText = "Erreur";
+    }
+});
+
+
+
+
 const SERVER_URL = "http://localhost:10000";
 
     async function chargerDonnees() {
