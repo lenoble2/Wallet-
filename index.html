@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Lean</title>
+    <title>Connexion - Lean</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -11,7 +11,7 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            min-height: 100vh; 
+            height: 100vh; 
             margin: 0; 
         }
         .container { 
@@ -22,7 +22,6 @@
             width: 90%; 
             max-width: 360px; 
             text-align: center; 
-            margin: 20px 0;
         }
         h1 { color: #333; margin-bottom: 5px; font-size: 24px; }
         p { color: #666; margin-bottom: 25px; font-size: 14px; }
@@ -51,32 +50,17 @@
         }
         button:hover { background-color: #005; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
-        .footer-links { 
-            margin-top: 20px; 
-            font-size: 14px; 
-            color: #666; 
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .footer-links a { 
-            color: #008; 
-            text-decoration: none; 
-            font-weight: bold; 
-        }
+        .footer-link { margin-top: 20px; font-size: 14px; color: #666; }
+        .footer-link a { color: #008; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Inscription</h1>
-    <p>Créez votre compte Lean</p>
+    <h1>Connexion</h1>
+    <p>Heureux de vous revoir !</p>
     
-    <form id="registerForm">
-        <div class="input-group">
-            <label for="nom">Nom d'utilisateur</label>
-            <input type="text" id="nom" placeholder="Votre nom complet" required>
-        </div>
+    <form id="loginForm">
         <div class="input-group">
             <label for="email">E-mail</label>
             <input type="email" id="email" placeholder="votre@email.com" required>
@@ -85,70 +69,64 @@
             <label for="pin">Code PIN (4 chiffres)</label>
             <input type="password" id="pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
         </div>
-        <div class="input-group">
-            <label for="confirmPin">Confirmer le PIN</label>
-            <input type="password" id="confirmPin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
-        </div>
 
-        <button type="submit" id="btnSInscrire">S'inscrire</button>
+        <button type="submit" id="btnConnecter">Se connecter</button>
     </form>
 
-    <div class="footer-links">
-        <div>Déjà un compte ? <a href="login.html">Se connecter ici</a></div>
-        <div><a href="index.html">Retour à l'accueil</a></div>
+    <div class="footer-link">
+        Nouveau ici ? <a href="inscription.html">Créer un compte</a>
     </div>
 </div>
 
 <script>
-    const form = document.getElementById('registerForm');
-    const btn = document.getElementById('btnSInscrire');
-    const API_URL = "https://lean-38wq.onrender.com";
+    const form = document.getElementById('loginForm');
+    const btn = document.getElementById('btnConnecter');
+
+    // Utilisation de l'URL correcte (URL Render de votre projet Lean)
+    const API_URL = "https://lean3.onrender.com";
 
     form.onsubmit = async (e) => {
         e.preventDefault();
         
-        const nom = document.getElementById('nom').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const pin = document.getElementById('pin').value.trim();
-        const confirmPin = document.getElementById('confirmPin').value.trim();
-
-        // Vérification simple des PIN
-        if (pin !== confirmPin) {
-            alert("Les codes PIN ne correspondent pas.");
-            return;
-        }
-
         btn.disabled = true;
-        btn.innerText = "Création...";
+        btn.innerText = "Connexion...";
+
+        const emailSaisi = document.getElementById('email').value.trim();
+        const pinSaisi = document.getElementById('pin').value.trim();
 
         try {
-            const response = await fetch(`${API_URL}/api/inscription`, {
+            const response = await fetch(`${API_URL}/api/connexion`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, email, pin })
+                body: JSON.stringify({ email: emailSaisi, pin: pinSaisi })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Redirection directe vers le dashboard après inscription réussie
-                localStorage.setItem('userId', data.user.id);
-                localStorage.setItem('userName', data.user.nom);
-                window.location.href = 'dashboard.html';
+                // On stocke les informations pour la session
+                if (data.user) {
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.nom);
+                }
+                
+                // Redirection vers le dashboard
+                window.location.href = 'dashboard.html'; 
             } else {
-                alert("Erreur : " + (data.message || "Impossible de créer le compte"));
+                alert("Erreur : " + (data.message || "Email ou PIN incorrect"));
                 resetButton();
             }
         } catch (error) {
-            console.error("Erreur:", error);
-            alert("Erreur de connexion au serveur.");
+            console.error("Erreur de connexion:", error);
+            alert("Le serveur ne répond pas. Vérifiez que votre service Render est bien actif.");
             resetButton();
         }
     };
 
     function resetButton() {
         btn.disabled = false;
-        btn.innerText = "S'inscrire";
+        btn.innerText = "Se connecter";
     }
 </script>
 </body>
