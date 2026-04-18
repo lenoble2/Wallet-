@@ -580,32 +580,37 @@ margin-left: 0px;
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Récupération des éléments
     const displayID = document.getElementById('displayID');
     const displaySolde = document.getElementById('displaySolde');
     const displayUserName = document.getElementById('displayUserName');
 
-    // 1. Récupération
-    const userId = localStorage.getItem('userId');
-    const userName = localStorage.getItem('userName');
+    // 2. Tentative de lecture de la mémoire
+    const savedId = localStorage.getItem('userId');
+    const savedName = localStorage.getItem('userName');
 
-    console.log("ID récupéré :", userId); // Debug dans la console Termux/Chrome
+    // TEST DE DEBUG : Affiche une alerte sur votre téléphone pour voir ce qui est lu
+    // alert("ID détecté dans le téléphone : " + savedId);
 
-    // 2. Affichage de l'ID (Format 08000 + ID)
-    if (userId && userId !== "undefined") {
-        displayID.innerText = "08000" + userId;
-        if(userName) displayUserName.innerText = userName;
+    if (savedId && savedId !== "undefined" && savedId !== "null") {
+        // AFFICHAGE FORCÉ
+        displayID.innerText = "08000" + savedId;
+        if(displayUserName && savedName) displayUserName.innerText = savedName;
         
-        // 3. Appel au serveur pour le solde
-        recupererSolde(userId);
+        // 3. Charger le solde
+        chargerDonneesServeur(savedId);
     } else {
-        displayID.innerText = "Non détecté";
-        console.error("Erreur : Aucun userId dans le localStorage. Connectez-vous d'abord.");
+        // Si vraiment rien n'est trouvé
+        displayID.innerText = "Non connecté";
+        // Option : décommenter la ligne suivante pour forcer le retour au login
+        // window.location.href = 'login.html';
     }
 
-    async function recupererSolde(id) {
+    async function chargerDonneesServeur(id) {
         try {
-            // Vérifiez bien que c'est votre URL active
+            // Utilisation de l'URL que vous utilisez sur vos captures (lean3)
             const API_URL = "https://lean3.onrender.com"; 
             const response = await fetch(${API_URL}/api/user/${id});
             const data = await response.json();
@@ -613,11 +618,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success && data.user) {
                 displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR');
             }
-        } catch (err) {
-            console.error("Erreur serveur solde:", err);
+        } catch (e) {
+            console.error("Erreur de récupération :", e);
         }
     }
 });
+
 </script>
 </body>
 </html>
