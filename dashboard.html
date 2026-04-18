@@ -580,50 +580,108 @@ margin-left: 0px;
 </style>
 
 <script>
+Lenoble:
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Récupération des éléments
-    const displayID = document.getElementById('displayID');
-    const displaySolde = document.getElementById('displaySolde');
-    const displayUserName = document.getElementById('displayUserName');
+    // Utilisation de votre lien Render public
+    const SERVER_URL = "https://lean3.onrender.com";
 
-    // 2. Tentative de lecture de la mémoire
-    const savedId = localStorage.getItem('userId');
-    const savedName = localStorage.getItem('userName');
+    async function chargerDonnees() {
+        // Récupération des données locales
+        const userId = localStorage.getItem('userId'); 
+        const emailStocke = localStorage.getItem('userEmail');
+        const displayID = document.getElementById('user-id-display');
 
-    // TEST DE DEBUG : Affiche une alerte sur votre téléphone pour voir ce qui est lu
-    // alert("ID détecté dans le téléphone : " + savedId);
+        // Vérification de la session
+        if (!userId  userId === "undefined"  userId === "null") {
+            if(displayID) displayID.textContent = "Non connecté";
+            // Optionnel : rediriger vers l'accueil si non connecté
+            // window.location.href = 'index.html';
+            return;
+        }
 
-    if (savedId && savedId !== "undefined" && savedId !== "null") {
-        // AFFICHAGE FORCÉ
-        displayID.innerText = "08000" + savedId;
-        if(displayUserName && savedName) displayUserName.innerText = savedName;
-        
-        // 3. Charger le solde
-        chargerDonneesServeur(savedId);
-    } else {
-        // Si vraiment rien n'est trouvé
-        displayID.innerText = "Non connecté";
-        // Option : décommenter la ligne suivante pour forcer le retour au login
-        // window.location.href = 'login.html';
-    }
+        // AFFICHAGE DE L'ID AVEC LE PRÉFIXE 08000
+        if (displayID) {
+            displayID.textContent = "ID: 08000" + userId;
+        }
+        
+        // Affichage temporaire de l'email s'il existe déjà
+        if (emailStocke) {
+            document.getElementById('user-email-display').textContent = emailStocke;
+        }
 
-    async function chargerDonneesServeur(id) {
-        try {
-            // Utilisation de l'URL que vous utilisez sur vos captures (lean3)
-            const API_URL = "https://lean3.onrender.com"; 
-            const response = await fetch(${API_URL}/api/user/${id});
-            const data = await response.json();
+        try {
+            // Appel API pour le solde et les infos fraîches
+            const response = await fetch(${SERVER_URL}/solde/${userId});
+            const data = await response.json();
 
-            if (data.success && data.user) {
-                displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR');
-            }
-        } catch (e) {
-            console.error("Erreur de récupération :", e);
-        }
-    }
-});
+            if (data.success) {
+                // Mise à jour de l'email (si différent du local)
+                document.getElementById('user-email-display').textContent = data.email || emailStocke;
+                
+                // Mise à jour du solde
+                const montant = parseFloat(data.solde) || 0;
+                document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // Mise à jour du QR Code avec l'ID complet
+                const qrImg = document.getElementById('qr-image');
+                if(qrImg) qrImg.src = https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=08000${userId};
+            }
+        } catch (error) {
+            console.error("Erreur réseau vers Render:", error);
+            document.getElementById('solde').textContent = "---";
+        }
 
+        // Chargement de l'historique
+        chargerHistorique(userId);
+    }
+
+    async function chargerHistorique(userId) {
+        const container = document.getElementById('liste-transactions');
+        try {
+            const response = await fetch(${SERVER_URL}/historique/${userId});
+            const data = await response.json();
+
+            if (data.success && data.transactions.length > 0) {
+                container.innerHTML = ""; 
+                
+                data.transactions.forEach(t => {
+                    // Vérification si c'est une sortie (débit) ou entrée (crédit)
+                    const isOut = String(t.expediteur_id) === String(userId);
+                    
+                    const couleur = isOut ? "#e74c3c" : "#2ecc71";
+                    const signe = isOut ? "-" : "+";
+                    
+                    const nomAffiche = isOut 
+                        ? "Vers: " + (t.nom_destinataire || "Inconnu") 
+                        : "De: " + (t.nom_expediteur || "Inconnu");
+                    
+                    container.innerHTML += `
+                        <div class="transaction-item">
+                            <div class="trans-info">
+                                <span class="trans-name">${nomAffiche}</span>
+                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                            <div class="trans-amount" style="color: ${couleur};">
+                                ${signe}${t.montant} XOF
+                            </div>
+
+</div>
+                    `;
+                });
+            } else {
+                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction.</p>";
+            }
+        } catch (error) {
+            console.error("Erreur historique:", error);
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Erreur historique.</p>";
+        }
+    }
+
+    // Lancement au chargement de la page
+    window.onload = chargerDonnees;
 </script>
 </body>
 </html>
