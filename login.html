@@ -5,14 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - Lean</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ddd; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 360px; text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #ddd; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            width: 90%; 
+            max-width: 360px; 
+            text-align: center; 
+        }
         h1 { color: #333; margin-bottom: 5px; font-size: 24px; }
         p { color: #666; margin-bottom: 25px; font-size: 14px; }
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #444; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #008; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: background 0.3s; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #008; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-top: 10px; 
+            transition: background 0.3s; 
+        }
         button:hover { background-color: #005; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         .footer-link { margin-top: 20px; font-size: 14px; color: #666; }
@@ -27,11 +62,11 @@
     
     <form id="loginForm">
         <div class="input-group">
-            <label>E-mail</label>
+            <label for="email">E-mail</label>
             <input type="email" id="email" placeholder="votre@email.com" required>
         </div>
         <div class="input-group">
-            <label>Code PIN (4 chiffres)</label>
+            <label for="pin">Code PIN (4 chiffres)</label>
             <input type="password" id="pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
         </div>
 
@@ -42,54 +77,53 @@
         Nouveau ici ? <a href="inscription.html">Créer un compte</a>
     </div>
 </div>
+
 <script>
     const form = document.getElementById('loginForm');
     const btn = document.getElementById('btnConnecter');
 
-    // On utilise l'URL locale (localhost) puisque vous n'utilisez pas Render pour le moment
-    const API_URL = "http://localhost:10000";
-    form.addEventListener('submit', async (e) => {
+    // Configuration de l'API
+    const API_URL = "https://lean-38wq.onrender.com";
+
+    form.onsubmit = async (e) => {
         e.preventDefault();
         
         // Verrouillage du bouton pour éviter les doubles clics
         btn.disabled = true;
-        btn.innerText = "Connexion en cours...";
+        btn.innerText = "Connexion...";
 
-        // RÉCUPÉRATION DES VALEURS
-        const email = document.getElementById('email').value.trim();
-        const pin = document.getElementById('pin').value.trim();
+        const emailSaisi = document.getElementById('email').value.trim();
+        const pinSaisi = document.getElementById('pin').value.trim();
 
         try {
-            // Appel à votre API locale de connexion
-            const response = await fetch(${API_URL}/api/connexion, {
+            const response = await fetch(`${API_URL}/api/connexion`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, pin })
+                body: JSON.stringify({ email: emailSaisi, pin: pinSaisi })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // 1. Sauvegarde de l'utilisateur dans le localStorage (comme dans l'inscription)
-                localStorage.setItem('user', JSON.stringify(data.user));
-                localStorage.setItem('userId', data.user.id);
-
-                // 2. Alerte de succès
-                alert("Connexion réussie ! Bienvenue.");
-
-                // 3. REDIRECTION FORCÉE (Même méthode que votre page d'inscription)
-                window.location.replace('dashboard.html');
+                // Stockage des informations utilisateur
+                if (data.user) {
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.nom);
+                }
                 
+                // Redirection immédiate vers le dashboard
+                window.location.href = 'dashboard.html'; 
             } else {
-                alert("Erreur : " + (data.message || "Identifiants incorrects"));
+                alert("Erreur : " + (data.message || "Email ou PIN incorrect"));
                 resetButton();
             }
         } catch (error) {
-            console.error("Erreur réseau :", error);
-            alert("Impossible de joindre le serveur local. Vérifiez que server.js tourne sur Termux.");
+            console.error("Erreur de connexion:", error);
+            alert("Le serveur ne répond pas. Vérifiez que l'instance Render est active.");
             resetButton();
         }
-    });
+    };
 
     function resetButton() {
         btn.disabled = false;
