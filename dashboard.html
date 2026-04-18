@@ -146,17 +146,12 @@
 
                 <div class="card-details">
                     <div id="user-id-display" style="font-weight: bold; color: black; font-size: 18px;">ID: --</div>
-                    <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">--</div>
-
-<div class="user-id">ID: <span id="displayID">--</span></div>
-<div class="user-balance">Solde: <span id="displaySolde">---</span> XOF</div>
-
-
-                    <div class="solde-container">
-                        <span class="label" style="color: gray; font-size: 14px;">Solde:</span>
-                        <span class="value" style="font-size: 22px; font-weight: bold; color: #333;">
-                            <span id="solde">0.00</span> <small style="font-size: 14px;">XOF</small>
-                        </span>
+                    <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">
+<div class="user-info">
+    <div class="user-id">ID: <span id="displayID">--</span></div>
+    <div class="user-name" id="displayUserName">Chargement...</div>
+    <div class="user-balance">Solde: <strong id="displaySolde">0.00</strong> XOF</div>
+</div>
                     </div>
                 </div>
             </div>
@@ -586,35 +581,41 @@ margin-left: 0px;
 <script>
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const userId = localStorage.getItem('userId');
-    const displayID = document.getElementById('displayID');
-    const displaySolde = document.getElementById('displaySolde');
+    // 1. Récupérer les éléments HTML
+    const displayID = document.getElementById('displayID');
+    const displaySolde = document.getElementById('displaySolde');
+    const displayUserName = document.getElementById('displayUserName');
 
-    if (!userId) {
-        // Si pas d'ID, on renvoie vers la connexion
-        window.location.href = 'login.html';
-        return;
-    }
+    // 2. Récupérer les données stockées localement (depuis login.html)
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName');
 
-    // 1. Affichage de l'ID formaté (ex: 080002)
-    displayID.innerText = "08000" + userId;
+    // 3. Vérifier si l'utilisateur est connecté
+    if (!userId) {
+        window.location.href = 'login.html';
+        return;
+    }
 
-    // 2. Récupération du solde depuis l'API
-    try {
-        const API_URL = "https://lean3.onrender.com";
-        const response = await fetch(${API_URL}/api/user/${userId});
-        const data = await response.json();
+    // 4. Afficher l'ID formaté immédiatement
+    displayID.innerText = "08000" + userId;
+    if(userName) displayUserName.innerText = userName;
 
-        if (data.success) {
-            // Affichage du solde formaté
-            displaySolde.innerText = data.user.solde.toLocaleString('fr-FR');
-        } else {
-            displaySolde.innerText = "0";
-        }
-    } catch (error) {
-        console.error("Erreur solde:", error);
-        displaySolde.innerText = "Erreur";
-    }
+    // 5. Récupérer le solde réel depuis le serveur Render
+    try {
+        const API_URL = "https://lean3.onrender.com";
+        const response = await fetch(${API_URL}/api/user/${userId});
+        const data = await response.json();
+
+        if (data.success && data.user) {
+            // Affiche le solde avec un séparateur de milliers
+            displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2
+            });
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération du solde:", error);
+        // On laisse 0.00 si le serveur ne répond pas
+    }
 });
 
 
