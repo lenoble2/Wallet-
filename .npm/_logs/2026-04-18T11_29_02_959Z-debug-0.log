@@ -1,0 +1,267 @@
+0 verbose cli /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/npm
+1 info using npm@11.12.1
+2 info using node@v25.8.2
+3 silly config load:file:/data/data/com.termux/files/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/data/data/com.termux/files/home/.npmrc
+5 silly config load:file:/data/data/com.termux/files/usr/etc/npmrc
+6 verbose title npm install dotenv
+7 verbose argv "install" "dotenv"
+8 verbose logfile logs-max:10 dir:/data/data/com.termux/files/home/.npm/_logs/2026-04-18T11_29_02_959Z-
+9 verbose logfile /data/data/com.termux/files/home/.npm/_logs/2026-04-18T11_29_02_959Z-debug-0.log
+10 silly logfile done cleaning log files
+11 silly packumentCache heap:555483136 maxSize:138870784 maxEntrySize:69435392
+12 silly idealTree buildDeps
+13 silly fetch manifest dotenv@*
+14 silly packumentCache full:https://registry.npmjs.org/dotenv cache-miss
+15 http fetch GET 200 https://registry.npmjs.org/dotenv 2316ms (cache revalidated)
+16 silly packumentCache full:https://registry.npmjs.org/dotenv set size:277856 disposed:false
+17 silly placeDep ROOT dotenv@17.4.2 REPLACE for: lean2@1.0.0 want: *
+18 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/@types/node' ]
+19 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/accepts' ]
+20 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/aws-ssl-profiles' ]
+21 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/body-parser' ]
+22 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/bytes' ]
+23 silly reify mark retired [
+23 silly reify   '/data/data/com.termux/files/home/node_modules/call-bind-apply-helpers'
+23 silly reify ]
+24 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/call-bound' ]
+25 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/content-disposition' ]
+26 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/content-type' ]
+27 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/cookie' ]
+28 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/cookie-signature' ]
+29 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/cors' ]
+30 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/debug' ]
+31 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/denque' ]
+32 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/depd' ]
+33 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/dunder-proto' ]
+34 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/ee-first' ]
+35 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/encodeurl' ]
+36 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/es-define-property' ]
+37 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/es-errors' ]
+38 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/es-object-atoms' ]
+39 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/escape-html' ]
+40 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/etag' ]
+41 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/express' ]
+42 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/finalhandler' ]
+43 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/forwarded' ]
+44 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/fresh' ]
+45 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/function-bind' ]
+46 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/generate-function' ]
+47 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/get-intrinsic' ]
+48 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/get-proto' ]
+49 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/gopd' ]
+50 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/has-symbols' ]
+51 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/hasown' ]
+52 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/http-errors' ]
+53 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/iconv-lite' ]
+54 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/inherits' ]
+55 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/ipaddr.js' ]
+56 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/is-promise' ]
+57 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/is-property' ]
+58 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/long' ]
+59 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/lru.min' ]
+60 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/math-intrinsics' ]
+61 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/media-typer' ]
+62 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/merge-descriptors' ]
+63 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/mime-db' ]
+64 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/mime-types' ]
+65 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/ms' ]
+66 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/mysql2' ]
+67 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/named-placeholders' ]
+68 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/negotiator' ]
+69 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/object-assign' ]
+70 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/object-inspect' ]
+71 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/on-finished' ]
+72 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/once' ]
+73 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/parseurl' ]
+74 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/path-to-regexp' ]
+75 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/proxy-addr' ]
+76 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/qs' ]
+77 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/range-parser' ]
+78 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/raw-body' ]
+79 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/router' ]
+80 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/safer-buffer' ]
+81 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/send' ]
+82 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/serve-static' ]
+83 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/setprototypeof' ]
+84 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/side-channel' ]
+85 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/side-channel-list' ]
+86 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/side-channel-map' ]
+87 silly reify mark retired [
+87 silly reify   '/data/data/com.termux/files/home/node_modules/side-channel-weakmap'
+87 silly reify ]
+88 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/sql-escaper' ]
+89 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/statuses' ]
+90 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/toidentifier' ]
+91 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/type-is' ]
+92 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/undici-types' ]
+93 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/unpipe' ]
+94 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/vary' ]
+95 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/wrappy' ]
+96 silly reify moves {
+96 silly reify   '/data/data/com.termux/files/home/node_modules/@types/node': '/data/data/com.termux/files/home/node_modules/@types/.node-ImvShB6u',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/accepts': '/data/data/com.termux/files/home/node_modules/.accepts-oLuF3dDy',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/aws-ssl-profiles': '/data/data/com.termux/files/home/node_modules/.aws-ssl-profiles-sySbIL0M',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/body-parser': '/data/data/com.termux/files/home/node_modules/.body-parser-8Eei0Tue',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/bytes': '/data/data/com.termux/files/home/node_modules/.bytes-F6RH1A6i',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/call-bind-apply-helpers': '/data/data/com.termux/files/home/node_modules/.call-bind-apply-helpers-t4WTzyoc',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/call-bound': '/data/data/com.termux/files/home/node_modules/.call-bound-P3Q5TNEi',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/content-disposition': '/data/data/com.termux/files/home/node_modules/.content-disposition-u6Zy2oA9',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/content-type': '/data/data/com.termux/files/home/node_modules/.content-type-Xn8YjySP',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/cookie': '/data/data/com.termux/files/home/node_modules/.cookie-xe2YP4DY',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/cookie-signature': '/data/data/com.termux/files/home/node_modules/.cookie-signature-Gh6a1Np3',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/cors': '/data/data/com.termux/files/home/node_modules/.cors-hV4UTmlr',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/debug': '/data/data/com.termux/files/home/node_modules/.debug-TkhpOaas',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/denque': '/data/data/com.termux/files/home/node_modules/.denque-WAY7Y3uA',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/depd': '/data/data/com.termux/files/home/node_modules/.depd-5scSjW7d',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/dunder-proto': '/data/data/com.termux/files/home/node_modules/.dunder-proto-xJsX1d1L',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/ee-first': '/data/data/com.termux/files/home/node_modules/.ee-first-LqRKEPP3',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/encodeurl': '/data/data/com.termux/files/home/node_modules/.encodeurl-F37cb5Vn',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/es-define-property': '/data/data/com.termux/files/home/node_modules/.es-define-property-R0tWN4Xx',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/es-errors': '/data/data/com.termux/files/home/node_modules/.es-errors-fJozAEp8',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/es-object-atoms': '/data/data/com.termux/files/home/node_modules/.es-object-atoms-OrDhhCWl',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/escape-html': '/data/data/com.termux/files/home/node_modules/.escape-html-NBzFtDul',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/etag': '/data/data/com.termux/files/home/node_modules/.etag-qkROeRG7',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/express': '/data/data/com.termux/files/home/node_modules/.express-gmqdTaNc',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/finalhandler': '/data/data/com.termux/files/home/node_modules/.finalhandler-BzcyvGmi',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/forwarded': '/data/data/com.termux/files/home/node_modules/.forwarded-ZqLyFqQX',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/fresh': '/data/data/com.termux/files/home/node_modules/.fresh-Wd2ZM1L8',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/function-bind': '/data/data/com.termux/files/home/node_modules/.function-bind-mG22eVRd',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/generate-function': '/data/data/com.termux/files/home/node_modules/.generate-function-7iKJVNWv',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/get-intrinsic': '/data/data/com.termux/files/home/node_modules/.get-intrinsic-cE7LRW89',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/get-proto': '/data/data/com.termux/files/home/node_modules/.get-proto-5CxJLIDf',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/gopd': '/data/data/com.termux/files/home/node_modules/.gopd-nv8i6TfO',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/has-symbols': '/data/data/com.termux/files/home/node_modules/.has-symbols-JfGc5lzw',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/hasown': '/data/data/com.termux/files/home/node_modules/.hasown-QbZYwwUe',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/http-errors': '/data/data/com.termux/files/home/node_modules/.http-errors-eUReUQSH',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/iconv-lite': '/data/data/com.termux/files/home/node_modules/.iconv-lite-kjZV3gBO',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/inherits': '/data/data/com.termux/files/home/node_modules/.inherits-jKD05L0h',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/ipaddr.js': '/data/data/com.termux/files/home/node_modules/.ipaddr.js-tlTqRWmd',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/is-promise': '/data/data/com.termux/files/home/node_modules/.is-promise-EJGnL72D',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/is-property': '/data/data/com.termux/files/home/node_modules/.is-property-hfup2TF4',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/long': '/data/data/com.termux/files/home/node_modules/.long-bw6e55YX',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/lru.min': '/data/data/com.termux/files/home/node_modules/.lru.min-CijwheTV',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/math-intrinsics': '/data/data/com.termux/files/home/node_modules/.math-intrinsics-rhLJyOuw',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/media-typer': '/data/data/com.termux/files/home/node_modules/.media-typer-5OdAuihZ',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/merge-descriptors': '/data/data/com.termux/files/home/node_modules/.merge-descriptors-j3WYvuTX',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/mime-db': '/data/data/com.termux/files/home/node_modules/.mime-db-bUZek4xA',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/mime-types': '/data/data/com.termux/files/home/node_modules/.mime-types-j4DVvKCN',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/ms': '/data/data/com.termux/files/home/node_modules/.ms-jWq6nSfg',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/mysql2': '/data/data/com.termux/files/home/node_modules/.mysql2-n9cBOok6',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/named-placeholders': '/data/data/com.termux/files/home/node_modules/.named-placeholders-vzoAf6mT',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/negotiator': '/data/data/com.termux/files/home/node_modules/.negotiator-HIev25xX',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/object-assign': '/data/data/com.termux/files/home/node_modules/.object-assign-k2YA3mk1',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/object-inspect': '/data/data/com.termux/files/home/node_modules/.object-inspect-9zgRurBz',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/on-finished': '/data/data/com.termux/files/home/node_modules/.on-finished-ZfI4iQvq',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/once': '/data/data/com.termux/files/home/node_modules/.once-8HP7pnjY',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/parseurl': '/data/data/com.termux/files/home/node_modules/.parseurl-RtXzGPs7',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/path-to-regexp': '/data/data/com.termux/files/home/node_modules/.path-to-regexp-WXxnr1kn',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/proxy-addr': '/data/data/com.termux/files/home/node_modules/.proxy-addr-q6SOMV2b',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/qs': '/data/data/com.termux/files/home/node_modules/.qs-W0eYfq0U',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/range-parser': '/data/data/com.termux/files/home/node_modules/.range-parser-26kVa3Ht',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/raw-body': '/data/data/com.termux/files/home/node_modules/.raw-body-RVyNpv10',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/router': '/data/data/com.termux/files/home/node_modules/.router-J79I2lNW',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/safer-buffer': '/data/data/com.termux/files/home/node_modules/.safer-buffer-YXQHPnj4',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/send': '/data/data/com.termux/files/home/node_modules/.send-1EeqNpRU',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/serve-static': '/data/data/com.termux/files/home/node_modules/.serve-static-B6S5nOex',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/setprototypeof': '/data/data/com.termux/files/home/node_modules/.setprototypeof-q6Do7Lc0',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/side-channel': '/data/data/com.termux/files/home/node_modules/.side-channel-lvmthW4k',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/side-channel-list': '/data/data/com.termux/files/home/node_modules/.side-channel-list-9ffertUE',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/side-channel-map': '/data/data/com.termux/files/home/node_modules/.side-channel-map-rD4ati54',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/side-channel-weakmap': '/data/data/com.termux/files/home/node_modules/.side-channel-weakmap-RPWcKQSe',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/sql-escaper': '/data/data/com.termux/files/home/node_modules/.sql-escaper-1WI3ElLO',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/statuses': '/data/data/com.termux/files/home/node_modules/.statuses-pnzJpq5y',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/toidentifier': '/data/data/com.termux/files/home/node_modules/.toidentifier-P1Ee5J8r',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/type-is': '/data/data/com.termux/files/home/node_modules/.type-is-zcKjvV4y',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/undici-types': '/data/data/com.termux/files/home/node_modules/.undici-types-OeY8Jtan',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/unpipe': '/data/data/com.termux/files/home/node_modules/.unpipe-44xCcJ7w',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/vary': '/data/data/com.termux/files/home/node_modules/.vary-Gb8z0Qy6',
+96 silly reify   '/data/data/com.termux/files/home/node_modules/wrappy': '/data/data/com.termux/files/home/node_modules/.wrappy-UsUZuIjw'
+96 silly reify }
+97 silly audit bulk request { dotenv: [ '17.4.2' ] }
+98 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 929ms
+99 silly audit report {}
+100 silly REMOVE node_modules/wrappy
+101 silly REMOVE node_modules/vary
+102 silly REMOVE node_modules/unpipe
+103 silly REMOVE node_modules/undici-types
+104 silly REMOVE node_modules/type-is
+105 silly REMOVE node_modules/toidentifier
+106 silly REMOVE node_modules/statuses
+107 silly REMOVE node_modules/sql-escaper
+108 silly REMOVE node_modules/side-channel-weakmap
+109 silly REMOVE node_modules/side-channel-map
+110 silly REMOVE node_modules/side-channel-list
+111 silly REMOVE node_modules/side-channel
+112 silly REMOVE node_modules/setprototypeof
+113 silly REMOVE node_modules/serve-static
+114 silly REMOVE node_modules/send
+115 silly REMOVE node_modules/safer-buffer
+116 silly REMOVE node_modules/router
+117 silly REMOVE node_modules/raw-body
+118 silly REMOVE node_modules/range-parser
+119 silly REMOVE node_modules/qs
+120 silly REMOVE node_modules/proxy-addr
+121 silly REMOVE node_modules/path-to-regexp
+122 silly REMOVE node_modules/parseurl
+123 silly REMOVE node_modules/once
+124 silly REMOVE node_modules/on-finished
+125 silly REMOVE node_modules/object-inspect
+126 silly REMOVE node_modules/object-assign
+127 silly REMOVE node_modules/negotiator
+128 silly REMOVE node_modules/named-placeholders
+129 silly REMOVE node_modules/mysql2
+130 silly REMOVE node_modules/ms
+131 silly REMOVE node_modules/mime-types
+132 silly REMOVE node_modules/mime-db
+133 silly REMOVE node_modules/merge-descriptors
+134 silly REMOVE node_modules/media-typer
+135 silly REMOVE node_modules/math-intrinsics
+136 silly REMOVE node_modules/lru.min
+137 silly REMOVE node_modules/long
+138 silly REMOVE node_modules/is-property
+139 silly REMOVE node_modules/is-promise
+140 silly REMOVE node_modules/ipaddr.js
+141 silly REMOVE node_modules/inherits
+142 silly REMOVE node_modules/iconv-lite
+143 silly REMOVE node_modules/http-errors
+144 silly REMOVE node_modules/hasown
+145 silly REMOVE node_modules/has-symbols
+146 silly REMOVE node_modules/gopd
+147 silly REMOVE node_modules/get-proto
+148 silly REMOVE node_modules/get-intrinsic
+149 silly REMOVE node_modules/generate-function
+150 silly REMOVE node_modules/function-bind
+151 silly REMOVE node_modules/fresh
+152 silly REMOVE node_modules/forwarded
+153 silly REMOVE node_modules/finalhandler
+154 silly REMOVE node_modules/express
+155 silly REMOVE node_modules/etag
+156 silly REMOVE node_modules/escape-html
+157 silly REMOVE node_modules/es-object-atoms
+158 silly REMOVE node_modules/es-errors
+159 silly REMOVE node_modules/es-define-property
+160 silly REMOVE node_modules/encodeurl
+161 silly REMOVE node_modules/ee-first
+162 silly REMOVE node_modules/dunder-proto
+163 silly REMOVE node_modules/depd
+164 silly REMOVE node_modules/denque
+165 silly REMOVE node_modules/debug
+166 silly REMOVE node_modules/cors
+167 silly REMOVE node_modules/cookie-signature
+168 silly REMOVE node_modules/cookie
+169 silly REMOVE node_modules/content-type
+170 silly REMOVE node_modules/content-disposition
+171 silly REMOVE node_modules/call-bound
+172 silly REMOVE node_modules/call-bind-apply-helpers
+173 silly REMOVE node_modules/bytes
+174 silly REMOVE node_modules/body-parser
+175 silly REMOVE node_modules/aws-ssl-profiles
+176 silly REMOVE node_modules/accepts
+177 silly REMOVE node_modules/@types/node
+178 verbose cwd /data/data/com.termux/files/home
+179 verbose os Linux 4.19.191-g4465035f2907-dirty
+180 verbose node v25.8.2
+181 verbose npm  v11.12.1
+182 verbose exit 0
+183 info ok

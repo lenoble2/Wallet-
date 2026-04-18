@@ -4,31 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Portefeuille - Lean</title>
+    
     <link rel="stylesheet" href="style.css"> 
+
     <style>
-        /* (Tes styles CSS restent identiques, ils sont très bien) */
-        .solde-container { display: flex; align-items: baseline; gap: 8px; margin-top: 5px; }
-        .mission-banner { position: relative; overflow: hidden; padding: 0 !important; height: 120px; border-radius: 12px; margin: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .slider-container { display: flex; width: 300%; height: 100%; animation: slide 12s infinite ease-in-out; }
-        .slider-container img { width: 33.33%; height: 100%; object-fit: cover; }
-        @keyframes slide { 0% { transform: translateX(0%); } 30% { transform: translateX(0%); } 33% { transform: translateX(-33.33%); } 63% { transform: translateX(-33.33%); } 66% { transform: translateX(-66.66%); } 96% { transform: translateX(-66.66%); } 100% { transform: translateX(0%); } }
-        .banner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); display: flex; align-items: center; padding: 15px; pointer-events: none; }
-        .history-section { margin: 10px 20px; }
-        .history-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; }
-        #liste-transactions { background: #fff; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 5px; margin-bottom: 30px; }
-        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f9f9f9; }
-        .transaction-item:last-child { border-bottom: none; }
-        .trans-info { display: flex; flex-direction: column; }
-        .trans-name { font-size: 14px; font-weight: bold; color: #2c3e50; }
-        .trans-date { font-size: 11px; color: #95a5a6; }
-        .trans-amount { font-weight: bold; font-size: 14px; }
+        /* --- AJUSTEMENTS LOCAUX --- */
+        .solde-container {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        /* --- STYLE DE LA BANNIÈRE DYNAMIQUE (SLIDER) --- */
+        .mission-banner {
+            position: relative;
+            overflow: hidden;
+            padding: 0 !important;
+            height: 120px;
+            border-radius: 12px;
+            margin: 20px; /* Ajout d'une marge pour l'aérer */
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .slider-container {
+            display: flex;
+            width: 300%; /* 3 images = 300% */
+            height: 100%;
+            animation: slide 12s infinite ease-in-out;
+        }
+
+        .slider-container img {
+            width: 33.33%; 
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(0%); }
+            30% { transform: translateX(0%); }
+            33% { transform: translateX(-33.33%); }
+            63% { transform: translateX(-33.33%); }
+            66% { transform: translateX(-66.66%); }
+            96% { transform: translateX(-66.66%); }
+            100% { transform: translateX(0%); }
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            pointer-events: none;
+        }
+
+        /* --- STYLE DE L'HISTORIQUE --- */
+        .history-section {
+            margin: 10px 20px;
+        }
+
+        .history-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        #liste-transactions {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 5px;
+            margin-bottom: 30px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .trans-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trans-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .trans-date {
+            font-size: 11px;
+            color: #95a5a6;
+        }
+
+        .trans-amount {
+            font-weight: bold;
+            font-size: 14px;
+        }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <header class="header">
             <div class="header-top">
-                <a href="menu.html" class="burger-menu"><span></span><span></span><span></span></a>
+                <a href="menu.html" class="burger-menu">
+                    <span></span><span></span><span></span>
+                </a>
                 <div class="lang-container">
                     <select class="lang-select" id="langPicker">
                         <option value="fr">🇫🇷 fr</option>
@@ -37,7 +131,9 @@
                 </div>
             </div>
             <div class="balance-container">
-                <span class="balance"><p><span style="color: yellow;">Le</span>an</p></span>
+                <span class="balance">
+                    <p><span style="color: yellow;">Le</span>an</p>
+                </span>
             </div>
         </header>
         
@@ -47,9 +143,11 @@
                     <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=Lean" alt="QR Code">
                     <div class="scanner-text">📷 Scanner</div>
                 </div>
+
                 <div class="card-details">
                     <div id="user-id-display" style="font-weight: bold; color: black; font-size: 18px;">ID: --</div>
                     <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">--</div>
+
                     <div class="solde-container">
                         <span class="label" style="color: gray; font-size: 14px;">Solde:</span>
                         <span class="value" style="font-size: 22px; font-weight: bold; color: #333;">
@@ -60,11 +158,23 @@
             </div>
         </div>
 
-<nav class="action-grid">
-            <a href="transfert.html" class="action-item"><div class="icon blue">👤</div><span>Transfert</span></a>
-            <a href="paiements.html" class="action-item"><div class="icon orange">🛒</div><span>Paiements</span></a>
-            <a href="lean.html" class="action-item"><div class="icon gold">🏛️</div><span>Lean</span></a>
-            <a href="carte.html" class="action-item"><div class="icon yellow">💳</div><span>Carte</span></a>
+        <nav class="action-grid">
+            <a href="transfert.html" class="action-item">
+                <div class="icon blue">👤</div>
+                <span>Transfert</span>
+            </a>
+            <a href="paiements.html" class="action-item">
+                <div class="icon orange">🛒</div>
+                <span>Paiements</span>
+            </a>
+            <a href="lean.html" class="action-item">
+                <div class="icon gold">🏛️</div>
+                <span>Lean</span>
+            </a>
+            <a href="carte.html" class="action-item">
+                <div class="icon yellow">💳</div>
+                <span>Carte</span>
+            </a>
         </nav>
 
         <div class="mission-banner" onclick="location.href='missions.html'">
@@ -75,7 +185,8 @@
             </div>
             <div class="banner-overlay">
                 <div class="text-content" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">
-                    <p style="margin: 0; font-size: 11px;">Cliquez pour voir les offres</p>
+                    <h4 style="margin: 0;"></h4>
+                    <p style="margin: 0; font-size: 11px;">Cliquez</p>
                 </div>
             </div>
         </div>
@@ -87,36 +198,416 @@
             </div>
         </div>
     </div>
+<style >
+    :root {
+  --Lean-blue: #008;
+  --bg-light: #f5f7fa;
+  box-sizing: border-box;
+  
+  .header-top {
+  display: flex;
+  justify-content: space-between; /* Pousse le menu à gauche et la langue à droite */
+  align-items: center;
+  padding: 10px 1px;
+  width: 100%;
+}
 
+/* Création des 3 barres */
+.burger-menu {
+  width: 20px;
+  height: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.burger-menu span {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background-color: white; /* Couleur des barres */
+  border-radius: 1px;
+}
+
+/* Style pour le sélecteur de langue à droite */
+.lang-selector {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+
+}
+
+body {
+  background-color: #ddd;
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  margin-top: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  
+}
+
+.action-grid {
+    display: grid;
+    /* Crée 4 colonnes de taille égale */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 10px;            /* Espace entre les boutons */
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.action-item {
+    display: flex;
+    flex-direction: column; /* L'icône au-dessus du texte */
+    align-items: center;    /* Centre l'icône et le texte */
+    text-decoration: none;
+    color: #333;
+    font-size: 12px;
+}
+
+.icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;     /* Rend l'icône ronde */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;     /* Espace entre l'icône et le mot */
+    font-size: 24px;
+}
+
+/* Couleurs de fond pour tes icônes */
+.blue { background-color: #eef2ff; color: #3b82f6; }
+.orange { background-color: #fff7ed; color: #f97316; }
+.gold { background-color: #fefce8; }
+.yellow { background-color: #f0f4f8; }
+
+
+
+
+.app-container {
+  width: 375px;
+  background: white;
+  min-height: 100vh;
+  position: relative;
+  margin-top: 0;
+  width: 100vw;
+  margin: 0;
+  background-color: white;
+  box-shadow: none;
+}
+
+/* la zone en bleue*/
+.header {
+  background-color: var(--Lean-blue);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  height: 20px;
+}
+/* l'écriture Lean*/
+.balance-container {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: -50px;
+}
+
+/* La Carte QR */
+.qr-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px; 
+  /* Chevauchement sur le bleu */
+}
+
+/* La carte principale grise */
+.qr-card {
+    background-color: #f0f4f8; /* Gris très clair ou bleuâtre selon l'aperçu */
+    padding: 15px;
+    border-radius: 20px;
+    margin: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* LE MOTEUR DE L'ALIGNEMENT : Force le QR et le Tableau sur la même ligne */
+.card-horizontal-container {
+    display: flex;
+    flex-direction: row;   /* Aligne horizontalement */
+    align-items: center;   /* Centre verticalement les deux blocs entre eux */
+    gap: 20px;             /* Espace entre le QR et le tableau */
+    width: 100%;
+}
+
+/* Zone du QR Code */
+.qr-placeholder {
+    background: white;
+    padding: 8px;
+    border-radius: 12px;
+    text-align: center;
+    flex-shrink: 0;        /* Empêche le QR de se réduire */
+}
+
+.qr-placeholder img {
+    width: 70px;           /* Taille ajustée pour l'écran mobile */
+    height: 70px;
+}
+
+.scanner-text {
+    font-size: 10px;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* Style du tableau d'informations */
+.info-table {
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 3px 0;
+}
+
+.info-table .label {
+    color: #888;           /* Gris pour l'intitulé (ID, Solde) */
+    font-size: 13px;
+    padding-right: 10px;
+}
+
+.info-table .value {
+    color: #333;           /* Noir/Gris foncé pour la valeur */
+    font-weight: bold;
+    font-size: 15px;
+
+}
+
+/* Zone du QR code */
+.qr-placeholder {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    flex-shrink: 0;   
+      width:70px;
+    /* Empêche le QR d'être compressé */
+}
+
+.qr-placeholder img {
+    width: 70px;            /* Taille ajustée pour tenir en ligne */
+    height: 70px;
+    display: block;
+}
+
+/* Zone des informations à droite */
+.card-details {
+    text-align: left;       /* Aligne le texte à gauche */
+    color: white;
+}
+
+.card-details p {
+    margin: 2px 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.user-id {
+    font-size: 1px !important;
+    color: #bbb;
+}
+.scanner-label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: px;
+  color: #333;
+margin-left: 0px;
+}
+
+/* Grille d'icônes */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.action-item span { font-size: 12px; font-weight: 500; }
+
+/* Couleurs des icônes (exemples) */
+.blue { background: #eef2ff; }
+.orange { background: #fff7ed; }
+.red { background: #fef2f2; }
+.purple {background: #e2e8f0;}
+
+/* Bannière */
+.info-banner {
+  background-color: #F0f0f0;
+  margin: 0 20px;
+  padding: 15px;
+  border-radius: 15px;
+  border-left: 5px solid #22c55e;
+  position: relative;
+}
+
+.info-banner h4 { margin: 0; color: #166534; font-size: 14px; }
+.info-banner p { margin: 5px 0 0; font-size: 12px; color: #15803d; }
+:root {
+  --green-border: #e2f5e9;
+  --green-bg: #f0f0f0;
+  --green-text: #166534;
+  --blue-wave: #4c49ed;
+}
+
+.mission-banner {
+  background: white;
+  border: 2px solid var(--green-border);
+  border-radius: 20px;
+  padding: 20px;
+  position: relative; /* Important pour le positionnement du badge NEW */
+  margin: 20px;
+  font-family: sans-serif;
+}
+
+/* Le Badge NEW */
+.badge-new {
+  position: absolute;
+  top: 15px;
+  left: 100px; /* Ajuste selon l'alignement souhaité */
+  color: #22c55e;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+}
+
+/* Organisation en ligne (Flexbox) */
+.banner-flex {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#user-id-display {
+    color: black !important;
+    font-weight: bold; 
+    
+}
+
+/* Espace entre la ligne du Solde et la ligne du Mail */
+.info-table tr {
+    display: block; /* Permet d'appliquer des marges sur les lignes */
+    margin-bottom: 15px;
+    margin-top: 15px;
+    /* Ajuste les 15px selon l'espace voulu */
+}
+
+/* On aligne le texte des labels pour que ce soit joli */
+.label {
+    padding-right: 0px;
+    font-weight: bold;
+}
+
+
+.icon-container {
+  background: var(--green-bg);
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.text-content h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.text-content p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.link-icon {
+  color: #22c55e;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Les petits points en dessous */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: -10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 50%;
+}
+
+.dot.active {
+  width: 20px; /* Le point actif est plus large */
+  background: var(--blue-wave);
+  border-radius: 10px;
+}
+
+    
+</style>
 <script>
-    // URL mise à jour pour fonctionner en ligne
-    const SERVER_URL = "https://lean-38wq.onrender.com";
+const SERVER_URL = "http://localhost:10000";
 
     async function chargerDonnees() {
         const userId = localStorage.getItem('userId'); 
         const emailStocke = localStorage.getItem('userEmail');
 
+        if (userId) document.getElementById('user-id-display').textContent = "ID: " + userId;
+        
         if (!userId || userId === "undefined") {
-            window.location.href = "login.html"; // Redirection si pas connecté
+            document.getElementById('user-id-display').textContent = "Session expirée";
             return;
         }
 
-        document.getElementById('user-id-display').textContent = "ID: " + userId;
-        document.getElementById('user-email-display').textContent = emailStocke || "Utilisateur Lean";
-
         try {
-            const response = await fetch(${SERVER_URL}/api/solde/${userId});
+            const response = await fetch(`${SERVER_URL}/solde/${userId}`);
             const data = await response.json();
 
             if (data.success) {
+                document.getElementById('user-email-display').textContent = data.email || emailStocke;
                 const montant = parseFloat(data.solde) || 0;
                 document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {minimumFractionDigits: 2});
                 
-                // QR Code dynamique basé sur l'ID réel
-                document.getElementById('qr-image').src = https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${userId};
+                const qrImg = document.getElementById('qr-image');
+                if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${userId}`;
             }
         } catch (error) {
-            console.error("Erreur chargement solde");
+            console.error("Erreur réseau");
+            document.getElementById('solde').textContent = "---";
         }
 
         chargerHistorique(userId);
@@ -125,71 +616,44 @@
     async function chargerHistorique(userId) {
         const container = document.getElementById('liste-transactions');
         try {
-            const response = await fetch(${SERVER_URL}/api/historique/${userId});
+            const response = await fetch(`${SERVER_URL}/historique/${userId}`);
             const data = await response.json();
 
-            if (data.success && data.transactions && data.transactions.length > 0) {
+            if (data.success && data.transactions.length > 0) {
                 container.innerHTML = ""; 
                 
                 data.transactions.forEach(t => {
-                    // Vérifie si l'utilisateur actuel est l'expéditeur
-                    const isOut = t.expediteur_id == userId;
+                    const cleanUserId = userId.replace("08000", "");
+                    const isOut = t.expediteur_id == cleanUserId;
+                    
                     const couleur = isOut ? "#e74c3c" : "#2ecc71";
                     const signe = isOut ? "-" : "+";
                     
                     const nomAffiche = isOut 
-                        ? "Envoyé à: " + (t.nom_destinataire || t.destinataire_id) 
-                        : "Reçu de: " + (t.nom_expediteur || t.expediteur_id);
+                        ? "Vers: " + (t.nom_destinataire || "Inconnu") 
+                        : "De: " + (t.nom_expediteur || "Inconnu");
                     
                     container.innerHTML += `
                         <div class="transaction-item">
-
-<div class="trans-info">
+                            <div class="trans-info">
                                 <span class="trans-name">${nomAffiche}</span>
-                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString('fr-FR')}</span>
+                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString()}</span>
                             </div>
                             <div class="trans-amount" style="color: ${couleur};">
-                                ${signe} ${t.montant.toLocaleString()} XOF
+                                ${signe}${t.montant} XOF
                             </div>
                         </div>
                     `;
                 });
             } else {
-                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité pour le moment.</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction.</p>";
             }
         } catch (error) {
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Impossible de charger l'historique.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Erreur historique.</p>";
         }
     }
+
     window.onload = chargerDonnees;
-
-<script>
-        // 1. On récupère les données sauvegardées
-        const user = JSON.parse(localStorage.getItem('user'));
-
-        // 2. Si l'utilisateur n'existe pas, on le renvoie à la connexion
-        if (!user) {
-            window.location.href = 'index.html';
-        } else {
-            // 3. On affiche l'ID (Assure-toi que l'ID dans ton HTML est 'user-id-display')
-            const idDisplay = document.getElementById('user-id-display');
-            if (idDisplay) {
-                idDisplay.textContent = user.id;
-            }
-
-            // 4. On affiche le solde
-            const soldeDisplay = document.getElementById('solde');
-            if (soldeDisplay) {
-                soldeDisplay.textContent = parseFloat(user.solde || 0).toFixed(2);
-            }
-            
-            // On lance le reste de tes fonctions si elles existent
-            if (typeof chargerHistorique === "function") {
-                chargerHistorique(user.id);
-            }
-        }
-   
-
 </script>
 </body>
 </html>
