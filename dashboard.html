@@ -578,123 +578,46 @@ margin-left: 0px;
 
     
 </style>
-<script>
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Récupérer les éléments HTML
+<script>
+document.addEventListener('DOMContentLoaded', () => {
     const displayID = document.getElementById('displayID');
     const displaySolde = document.getElementById('displaySolde');
     const displayUserName = document.getElementById('displayUserName');
 
-    // 2. Récupérer les données stockées localement (depuis login.html)
+    // 1. Récupération
     const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('userName');
 
-    // 3. Vérifier si l'utilisateur est connecté
-    if (!userId) {
-        window.location.href = 'login.html';
-        return;
+    console.log("ID récupéré :", userId); // Debug dans la console Termux/Chrome
+
+    // 2. Affichage de l'ID (Format 08000 + ID)
+    if (userId && userId !== "undefined") {
+        displayID.innerText = "08000" + userId;
+        if(userName) displayUserName.innerText = userName;
+        
+        // 3. Appel au serveur pour le solde
+        recupererSolde(userId);
+    } else {
+        displayID.innerText = "Non détecté";
+        console.error("Erreur : Aucun userId dans le localStorage. Connectez-vous d'abord.");
     }
 
-    // 4. Afficher l'ID formaté immédiatement
-    displayID.innerText = "08000" + userId;
-    if(userName) displayUserName.innerText = userName;
+    async function recupererSolde(id) {
+        try {
+            // Vérifiez bien que c'est votre URL active
+            const API_URL = "https://lean3.onrender.com"; 
+            const response = await fetch(${API_URL}/api/user/${id});
+            const data = await response.json();
 
-    // 5. Récupérer le solde réel depuis le serveur Render
-    try {
-        const API_URL = "https://lean3.onrender.com";
-        const response = await fetch(${API_URL}/api/user/${userId});
-        const data = await response.json();
-
-        if (data.success && data.user) {
-            // Affiche le solde avec un séparateur de milliers
-            displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR', {
-                minimumFractionDigits: 2
-            });
+            if (data.success && data.user) {
+                displaySolde.innerText = parseFloat(data.user.solde).toLocaleString('fr-FR');
+            }
+        } catch (err) {
+            console.error("Erreur serveur solde:", err);
         }
-    } catch (error) {
-        console.error("Erreur lors de la récupération du solde:", error);
-        // On laisse 0.00 si le serveur ne répond pas
     }
 });
-
-
-
-
-const SERVER_URL = "http://localhost:10000";
-
-    async function chargerDonnees() {
-        const userId = localStorage.getItem('userId'); 
-        const emailStocke = localStorage.getItem('userEmail');
-
-        if (userId) document.getElementById('user-id-display').textContent = "ID: " + userId;
-        
-        if (!userId || userId === "undefined") {
-            document.getElementById('user-id-display').textContent = "Session expirée";
-            return;
-        }
-
-        try {
-            const response = await fetch(`${SERVER_URL}/solde/${userId}`);
-            const data = await response.json();
-
-            if (data.success) {
-                document.getElementById('user-email-display').textContent = data.email || emailStocke;
-                const montant = parseFloat(data.solde) || 0;
-                document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {minimumFractionDigits: 2});
-                
-                const qrImg = document.getElementById('qr-image');
-                if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${userId}`;
-            }
-        } catch (error) {
-            console.error("Erreur réseau");
-            document.getElementById('solde').textContent = "---";
-        }
-
-        chargerHistorique(userId);
-    }
-
-    async function chargerHistorique(userId) {
-        const container = document.getElementById('liste-transactions');
-        try {
-            const response = await fetch(`${SERVER_URL}/historique/${userId}`);
-            const data = await response.json();
-
-            if (data.success && data.transactions.length > 0) {
-                container.innerHTML = ""; 
-                
-                data.transactions.forEach(t => {
-                    const cleanUserId = userId.replace("08000", "");
-                    const isOut = t.expediteur_id == cleanUserId;
-                    
-                    const couleur = isOut ? "#e74c3c" : "#2ecc71";
-                    const signe = isOut ? "-" : "+";
-                    
-                    const nomAffiche = isOut 
-                        ? "Vers: " + (t.nom_destinataire || "Inconnu") 
-                        : "De: " + (t.nom_expediteur || "Inconnu");
-                    
-                    container.innerHTML += `
-                        <div class="transaction-item">
-                            <div class="trans-info">
-                                <span class="trans-name">${nomAffiche}</span>
-                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString()}</span>
-                            </div>
-                            <div class="trans-amount" style="color: ${couleur};">
-                                ${signe}${t.montant} XOF
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction.</p>";
-            }
-        } catch (error) {
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Erreur historique.</p>";
-        }
-    }
-
-    window.onload = chargerDonnees;
-</script>
+</script>>
 </body>
 </html>
