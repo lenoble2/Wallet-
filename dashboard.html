@@ -578,64 +578,53 @@ margin-left: 0px;
 
     
 </style>
-
 <script>
-Lenoble:
-<script>
-    // Utilisation de votre lien Render public
+    // Utilisation de votre serveur Render public
     const SERVER_URL = "https://lean3.onrender.com";
 
     async function chargerDonnees() {
-        // Récupération des données locales
-        const userId = localStorage.getItem('userId'); 
+        // 1. Récupération de l'ID brut dans le stockage du téléphone
+        const rawId = localStorage.getItem('userId'); 
         const emailStocke = localStorage.getItem('userEmail');
         const displayID = document.getElementById('user-id-display');
 
-        // Vérification de la session
-        if (!userId  userId === "undefined"  userId === "null") {
-            if(displayID) displayID.textContent = "Non connecté";
-            // Optionnel : rediriger vers l'accueil si non connecté
-            // window.location.href = 'index.html';
+        // 2. Vérification si l'utilisateur est bien connecté
+        if (!rawId  rawId === "undefined"  rawId === "null") {
+            if(displayID) displayID.textContent = "Session expirée";
             return;
         }
 
-        // AFFICHAGE DE L'ID AVEC LE PRÉFIXE 08000
-        if (displayID) {
-            displayID.textContent = "ID: 08000" + userId;
-        }
+        // 3. Formatage de l'ID avec 08000
+        const formattedId = "08000" + rawId;
+
+        // 4. AFFICHAGE IMMÉDIAT DU NUMÉRO ID ET DU QR CODE
+        displayID.textContent = "ID: " + formattedId;
         
-        // Affichage temporaire de l'email s'il existe déjà
-        if (emailStocke) {
-            document.getElementById('user-email-display').textContent = emailStocke;
+        const qrImg = document.getElementById('qr-image');
+        if(qrImg) {
+            // Le QR Code contiendra aussi le numéro 08000...
+            qrImg.src = https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${formattedId};
         }
 
+        // 5. APPEL AU SERVEUR POUR LE SOLDE ET L'EMAIL
         try {
-            // Appel API pour le solde et les infos fraîches
-            const response = await fetch(${SERVER_URL}/solde/${userId});
+            const response = await fetch(${SERVER_URL}/solde/${rawId});
             const data = await response.json();
 
             if (data.success) {
-                // Mise à jour de l'email (si différent du local)
                 document.getElementById('user-email-display').textContent = data.email || emailStocke;
-                
-                // Mise à jour du solde
                 const montant = parseFloat(data.solde) || 0;
                 document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                
-                // Mise à jour du QR Code avec l'ID complet
-                const qrImg = document.getElementById('qr-image');
-                if(qrImg) qrImg.src = https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=08000${userId};
             }
         } catch (error) {
-            console.error("Erreur réseau vers Render:", error);
+            console.error("Erreur réseau vers Render");
             document.getElementById('solde').textContent = "---";
         }
 
-        // Chargement de l'historique
-        chargerHistorique(userId);
+        chargerHistorique(rawId);
     }
 
     async function chargerHistorique(userId) {
@@ -648,7 +637,7 @@ Lenoble:
                 container.innerHTML = ""; 
                 
                 data.transactions.forEach(t => {
-                    // Vérification si c'est une sortie (débit) ou entrée (crédit)
+                    // Comparaison stricte pour déterminer si c'est un débit ou crédit
                     const isOut = String(t.expediteur_id) === String(userId);
                     
                     const couleur = isOut ? "#e74c3c" : "#2ecc71";
@@ -658,7 +647,7 @@ Lenoble:
                         ? "Vers: " + (t.nom_destinataire || "Inconnu") 
                         : "De: " + (t.nom_expediteur || "Inconnu");
                     
-                    container.innerHTML += `
+                    container.innerHTML += 
                         <div class="transaction-item">
                             <div class="trans-info">
                                 <span class="trans-name">${nomAffiche}</span>
@@ -667,20 +656,18 @@ Lenoble:
                             <div class="trans-amount" style="color: ${couleur};">
                                 ${signe}${t.montant} XOF
                             </div>
-
-</div>
-                    `;
+                        </div>
+                    ;
                 });
             } else {
                 container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction.</p>";
             }
         } catch (error) {
-            console.error("Erreur historique:", error);
             container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Erreur historique.</p>";
         }
     }
 
-    // Lancement au chargement de la page
+    // Lancement automatique au chargement
     window.onload = chargerDonnees;
 </script>
 </body>
