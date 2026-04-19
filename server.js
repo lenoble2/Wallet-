@@ -1,180 +1,28 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
+
+// Configuration de base
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 25060,
-    ssl: { rejectUnauthorized: false },
-    connectTimeout: 10000 
-};
-
-// 1. Configuration (Vérifie bien que DB_NAME est 'leandb' dans ton .env sur Render)
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'leandb', 
-    port: process.env.DB_PORT || 26250,
-    ssl: { rejectUnauthorized: false },
-    connectTimeout: 10000
-};
-
-let db;
-
-function handleDisconnect() {
-    db = mysql.createConnection(dbConfig);
-
-    db.connect(err => {
-        if (err) {
-            console.log('❌ Erreur de connexion Aiven :', err.message);
-            setTimeout(handleDisconnect, 2000); // Réessaie si ça échoue
-        } else {
-            console.log('✅ Connecté avec succès à Aiven Cloud');
-            initialiserBaseDeDonnees();
-        }
-    });
-
-    db.on('error', err => {
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            handleDisconnect();
-        } else {
-            throw err;
-        }
-    });
-}
-
-function initialiserBaseDeDonnees() {
-    const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nom VARCHAR(100),
-        email VARCHAR(100) UNIQUE,
-        pin VARCHAR(10),
-        solde DECIMAL(15, 2) DEFAULT 0.00
-    );;
-
-    db.query(tableQuery, (err) => {
-        if (err) return console.log("Erreur création table:", err);
-        
-        const userQuery = INSERT IGNORE INTO utilisateurs (nom, email, pin, solde) 
-                           VALUES ('Test User', 'test@lean.com', '1234', 5000000.00);;
-        
-        db.query(userQuery, (err) => {
-            if (err) console.log("Erreur insertion utilisateur:", err);
-            else console.log("🚀 Base prête et compte de test (5M XOF) vérifié !");
-        });
-    });
-}
-
-handleDisconnect(); // On lance la machine
-
-
-// --- ROUTES DE L'APPLICATION ---
-
-// 1. Inscription
-app.post('/api/inscription', (req, res) => {
-    const { nom, email, pin } = req.body;
-    const query = 'INSERT INTO utilisateurs (nom, email, pin, solde) VALUES (?, ?, ?, 0.00)';
-    
-    db.query(query, [nom, email, pin], (err, result) => {
-        if (err) {
-            console.error('Erreur SQL:', err);
-            return res.status(500).json({ error: 'Erreur lors de l\'inscription' });
-        }
-        res.status(201).json({ 
-            success: true, 
-            user: { id: result.insertId, nom, email, solde: 0 } 
-        });
-    });
+// Route de test simple
+app.get('/test', (req, res) => {
+    res.json({ message: "Le serveur brute fonctionne !" });
 });
 
-// 2. Connexion
-app.post('/api/connexion', (req, res) => {
-    const { email, pin } = req.body;
-    const query = 'SELECT * FROM utilisateurs WHERE email = ? AND pin = ?';
-    
-    db.query(query, [email, pin], (err, results) => {
-        if (err || results.length === 0) {
-            return res.status(401).json({ success: false, message: 'Identifiants incorrects' });
-        }
-        const user = results[0];
-        res.json({ 
-            success: true, 
-            user: { id: user.id, nom: user.nom, email: user.email, solde: user.solde } 
-        });
-    });
+// Route pour servir ton fichier index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 3. Transfert d'argent
-app.post('/api/transferer', (req, res) => {
-    const { expediteur_id, email_destinataire, montant } = req.body;
-    const mnt = parseFloat(montant);
-
-    if (isNaN(mnt) || mnt <= 0) return res.status(400).json({ error: 'Montant invalide' });
-
-    // Trouver le destinataire
-    db.query('SELECT id FROM utilisateurs WHERE email = ?', [email_destinataire], (err, results) => {
-        if (err || results.length === 0) return res.status(404).json({ error: 'Destinataire introuvable' });
-        
-        const dest_id = results[0].id;
-
-        // Débiter l'expéditeur
-        db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ? AND solde >= ?', [mnt, expediteur_id, mnt], (err, result) => {
-            if (err || result.affectedRows === 0) return res.status(400).json({ error: 'Solde insuffisant' });
-
-            // Créditer le destinataire
-            db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [mnt, dest_id], (err) => {
-                if (err) return res.status(500).json({ error: 'Erreur lors du transfert' });
-                res.json({ success: true, message: 'Transfert réussi !' });
-            });
-        });
-    });
-});
-
-// 4. Servir la page d'accueil (Dashboard ou Index)
-// Route pour récupérer les infos d'un utilisateur spécifique
-app.get('/api/utilisateur/:id', async (req, res) => {
-    const userId = req.params.id;
-    try {
-        // Connexion à la base de données (Aiven ou Local)
-        const [rows] = await connection.execute(
-            'SELECT id, solde, email FROM utilisateurs WHERE id = ?', 
-            [userId]
-        );
-
-        if (rows.length > 0) {
-            res.json({
-                success: true,
-                id: rows[0].id,
-                solde: rows[0].solde,
-                email: rows[0].email
-            });
-        } else {
-            res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-
-// --- LANCEMENT DU SERVEUR ---
-const PORT = 10000;
-
+// Utilisation du port 10000 (standard pour Render)
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log("🚀 Serveur Lean operationnel");
-    console.log("Port: " + PORT);
+    console.log(`🌍 Serveur démarré sur le port ${PORT}`);
 });
-
-
 
