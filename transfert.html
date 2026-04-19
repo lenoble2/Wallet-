@@ -3,143 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfert Lean Wallet</title>
+    <title>Transfert Lean</title>
     <style>
-        /* Mise en page plein écran */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f4f7f6;
-        }
-
-        .container { 
-            width: 100%;
-            height: 100%;
-            max-width: 500px; /* Limite la largeur sur tablette/PC pour rester joli */
-            background: white; 
-            padding: 40px; 
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        h2 { color: #333; text-align: center; margin-bottom: 30px; }
-        
-        label { font-weight: bold; color: #555; display: block; margin-top: 15px; }
-
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            margin: 10px 0; 
-            border: 1px solid #ddd; 
-            border-radius: 8px;
-            font-size: 1.1em;
-            box-sizing: border-box; 
-        }
-
-        .info-box { 
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 5px solid #007bff;
-        }
-
-        .info-box p { margin: 5px 0; color: #666; }
-
-        button { 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 18px; 
-            border-radius: 8px;
-            font-size: 1.2em;
-            font-weight: bold;
-            width: 100%; 
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover { background: #0056b3; }
+        body { margin: 0; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f7f6; }
+        .box { width: 90%; max-width: 400px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 20px; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .res { background: #eef2ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #007bff; }
+        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Effectuer un transfert</h2>
+<div class="box">
+    <h2>Transfert de Fonds</h2>
     
-    <label>ID du destinataire (ex: 08000...) :</label>
-    <input type="text" id="destinataireID" placeholder="08000XXX" maxlength="15">
+    <label>ID Destinataire :</label>
+    <input type="text" id="destId" placeholder="0800029">
 
-    <label>Montant à envoyer (XOF) :</label>
-<input type="number" id="montant" placeholder="0" oninput="calculerFrais()" onchange="calculerFrais()">
-  
-    <div class="info-box">
-        <p>Frais de service (0.5%) : <strong><span id="frais">0</span> XOF</strong></p>
-        <p style="font-size: 1.2em; color: #333;">Total débité : <strong><span id="total">0</span> XOF</strong></p>
+    <label>Montant (XOF) :</label>
+    <input type="number" id="montantInput" placeholder="Ex: 10000" oninput="majCalcul()">
+
+    <div class="res">
+        Frais (0.5%) : <span id="fraisLabel">0</span> XOF<br>
+        <strong>Total : <span id="totalLabel">0</span> XOF</strong>
     </div>
 
-    <button onclick="envoyerTransfert()">Confirmer le transfert</button>
+    <button onclick="valider()">Confirmer le transfert</button>
 </div>
 
 <script>
-    const TAUX = 0.005;
+    function majCalcul() {
+        const val = document.getElementById('montantInput').value;
+        const mnt = parseFloat(val) || 0;
+        const f = mnt * 0.005;
 
-    function calculerFrais() {
-        const montant = parseFloat(document.getElementById('montant').value) || 0;
-        const frais = montant * TAUX;
-        // Le total débité est le montant saisi (les frais sont déduits ou ajoutés selon ta logique serveur)
-        document.getElementById('frais').innerText = frais.toFixed(0); 
-        document.getElementById('total').innerText = montant.toFixed(0);
+        document.getElementById('fraisLabel').innerText = Math.floor(f);
+        document.getElementById('totalLabel').innerText = Math.floor(mnt);
     }
 
-    async function envoyerTransfert() {
-        const idDest = document.getElementById('destinataireID').value;
-        const montantVal = parseFloat(document.getElementById('montant').value);
+    async function valider() {
+        const destinataireID = document.getElementById('destId').value;
+        const montant = parseFloat(document.getElementById('montantInput').value);
 
-        if (!idDest.startsWith("08000")) {
-            alert("L'ID doit commencer par 08000");
+        if (!destinataireID.startsWith("08000") || !montant || montant <= 0) {
+            alert("Veuillez remplir correctement l'ID et le montant.");
             return;
         }
 
-        if (!montantVal || montantVal <= 0) {
-            alert("Veuillez saisir un montant valide");
-            return;
-        }
-
-        const data = {
-            destinataireID: idDest,
-            montant: montantVal,
-            expediteurId: "user_actuel" // À remplacer par l'ID de la session
-        };
+        const payload = { destinataireID, montant, expediteurId: "session_user" };
 
         try {
-            const response = await fetch('/api/transfert', {
+            const resp = await fetch('/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
 
-const result = await response.json();
-            if(result.success) {
-                alert(Transfert réussi ! Frais système : ${result.details.frais} XOF envoyés à pourcent@lean.com);
-                window.location.href = "dashboard.html";
+            const res = await resp.json();
+            if (res.success) {
+                alert("Transfert réussi !");
+                location.reload();
             } else {
-                alert("Erreur : " + result.error);
+                alert("Erreur : " + res.error);
             }
-        } catch (error) {
-            alert("Erreur de connexion au serveur");
+        } catch (err) {
+            alert("Le serveur ne répond pas.");
         }
     }
 </script>
 
 </body>
 </html>
+
