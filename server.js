@@ -108,23 +108,19 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-// --- ROUTE 3 : TRANSFERT (DÉBIT & CRÉDIT + FRAIS) ---
+
+
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    // 1. Calcul des frais et montants
-    const tauxFrais = 0.005; // 0,5%
-    const montantFrais = somme * tauxFrais;
-    const montantNetDestinataire = somme - montantFrais;
-    const emailSysteme = "pourcent@lean.com"; // Compte qui reçoit les frais
-
-    if (!senderId || !receiverId || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Donnees invalides" });
+    // Vérification des données
+    if (!senderId || !receiverId || somme <= 0 || isNaN(somme)) {
+        return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
     db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false });
+        if (err) return res.status(500).json({ success: false, message: "Erreur système" });
 
         // A. Vérifier le solde de l'expéditeur
         db.query("SELECT solde FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
@@ -132,33 +128,27 @@ app.post('/api/transfert', (req, res) => {
                 return db.rollback(() => res.status(400).json({ success: false, message: "Solde insuffisant" }));
             }
 
-            // B. DÉBITER l'expéditeur du montant TOTAL (Somme saisie)
+            // B. Calcul des frais (0,5%)
+            const montantFrais = somme * 0.005; // 0.5%
+            const montantNet = somme - montantFrais;
+
+            // C. DÉBITER l'expéditeur (Somme totale)
             db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
-                if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur débit" }));
 
-                // C. CRÉDITER le destinataire du montant NET (Somme - Frais)
-                db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNetDestinataire, receiverId], (err, results) => {
-                    if (err || results.affectedRows === 0) {
-                        return db.rollback(() => res.status(404).json({ success: false, message: "Destinataire introuvable" }));
-                    }
+                // D. CRÉDITER le destinataire (Montant net)
+                db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNet, receiverId], (err) => {
+                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur crédit" }));
 
-                    // D. CRÉDITER le compte système pour les frais (Lean Treasury)
-                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE email = ?", [montantFrais, emailSysteme], (err) => {
-                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                    // E. CRÉDITER le compte des frais
+                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE email = 'pourcent@lean.com'", [montantFrais], (err) => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur frais" }));
 
-                        // Valider la transaction complète
                         db.commit((err) => {
-                            if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur commit" }));
                             
-                            console.log(`✅ Succès : -${somme} XOF de ID ${senderId}`);
-                            console.log(`✅ Reçu : +${montantNetDestinataire} XOF pour ID ${receiverId}`);
-                            console.log(`✅ Frais : +${montantFrais} XOF pour ${emailSysteme}`);
-                            
-                            res.json({ 
-                                success: true, 
-                                message: "Transfert effectué !",
-                                details: { frais: montantFrais.toFixed(0), net: montantNetDestinataire.toFixed(0) }
-                            });
+                            console.log(`Transfert réussi: -${somme} pour ${senderId}`);
+                            res.json({ success: true, message: "Transfert effectué avec succès !" });
                         });
                     });
                 });
@@ -166,7 +156,6 @@ app.post('/api/transfert', (req, res) => {
         });
     });
 });
-
 
 
 
