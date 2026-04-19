@@ -47,32 +47,26 @@ function initialiserBase() {
         solde DECIMAL(15, 2) DEFAULT 0.00
     );`;
 
-    db.query(tableQuery, (err) => {
-        if (err) return console.log("❌ Erreur lors de la création de la table:", err.message);
-        
-        // On vérifie d'abord si l'utilisateur existe
-        db.query('SELECT id FROM utilisateurs WHERE email = ?', ['test@lean.com'], (err, results) => {
-            if (err) return console.log("❌ Erreur vérification utilisateur:", err.message);
+// À l'intérieur de ta fonction d'initialisation de la base de données
+const sqlCoffre = 
+    INSERT INTO utilisateurs (nom, email, pin, solde) 
+    SELECT 'Coffre Fort', 'coffre@lean.com', '0000', 10000000.00
+    WHERE NOT EXISTS (SELECT 1 FROM utilisateurs WHERE email = 'coffre@lean.com')
+;
 
-            if (results.length === 0) {
-                // S'il n'existe pas, on l'insère
-                const insertQuery = `INSERT INTO utilisateurs (nom, email, pin, solde) 
-                                   VALUES ('Test User', 'test@lean.com', '1234', 5000000.00)`;
-                db.query(insertQuery, (err) => {
-                    if (err) console.log("❌ Erreur insertion test@lean.com:", err.message);
-                    else console.log("🚀 Compte test@lean.com créé avec succès !");
-                });
-            } else {
-                // S'il existe déjà, on met juste à jour le PIN pour être sûr
-                db.query('UPDATE utilisateurs SET pin = ? WHERE email = ?', ['1234', 'test@lean.com'], (err) => {
-                    if (err) console.log("❌ Erreur mise à jour PIN test:", err.message);
-                    else console.log("✅ Compte test@lean.com déjà présent et mis à jour.");
-                });
-            }
-        });
-    });
-}
+db.query(sqlCoffre, (err, result) => {
+    if (err) {
+        console.error("Erreur lors de la création du compte Coffre :", err);
+    } else if (result.affectedRows > 0) {
+        console.log("Compte coffre@lean.com créé avec 10 000 000 XOF !");
+    } else {
+        // Si le compte existe déjà, on met quand même le solde à jour
+        db.query("UPDATE utilisateurs SET solde = 10000000.00 WHERE email = 'coffre@lean.com'");
+        console.log("Solde du compte Coffre mis à jour.");
+    }
+});
 
+   
 
 // 1. Inscription
 app.post('/api/inscription', (req, res) => {
