@@ -108,27 +108,61 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
+// --- ROUTE 3 : TRANSFERT (DÉBIT & CRÉDIT + FRAIS) ---
 app.post('/api/transfert', (req, res) => {
-    const { montant, destinataireID, expediteurId } = req.body;
+    const { senderId, receiverId, montant } = req.body;
+    const somme = parseFloat(montant);
 
-    // ÉTAPE 1 : Débiter l'expéditeur (Table: utilisateurs)
-    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [montant, expediteurId], (err, result) => {
-        if (err) {
-            console.error("Erreur Débit:", err);
-            return res.status(500).json({ success: false, error: "Erreur débit" });
-        }
-        
-        // ÉTAPE 2 : Créditer le destinataire
-        const frais = montant * 0.005;
-        const montantNet = montant - frais;
-        
-        db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNet, destinataireID], (err2) => {
-            if (err2) {
-                console.error("Erreur Crédit:", err2);
-                return res.status(500).json({ success: false, error: "Erreur crédit" });
+    // 1. Calcul des frais et montants
+    const tauxFrais = 0.005; // 0,5%
+    const montantFrais = somme * tauxFrais;
+    const montantNetDestinataire = somme - montantFrais;
+    const emailSysteme = "pourcent@lean.com"; // Compte qui reçoit les frais
+
+    if (!senderId || !receiverId || somme <= 0) {
+        return res.status(400).json({ success: false, message: "Donnees invalides" });
+    }
+
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ success: false });
+
+        // A. Vérifier le solde de l'expéditeur
+        db.query("SELECT solde FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
+            if (err || results.length === 0 || results[0].solde < somme) {
+                return db.rollback(() => res.status(400).json({ success: false, message: "Solde insuffisant" }));
             }
 
-            res.json({ success: true, message: "Transfert réussi !" });
+            // B. DÉBITER l'expéditeur du montant TOTAL (Somme saisie)
+            db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false }));
+
+                // C. CRÉDITER le destinataire du montant NET (Somme - Frais)
+                db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNetDestinataire, receiverId], (err, results) => {
+                    if (err || results.affectedRows === 0) {
+                        return db.rollback(() => res.status(404).json({ success: false, message: "Destinataire introuvable" }));
+                    }
+
+                    // D. CRÉDITER le compte système pour les frais (Lean Treasury)
+                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE email = ?", [montantFrais, emailSysteme], (err) => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
+
+                        // Valider la transaction complète
+                        db.commit((err) => {
+                            if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                            
+                            console.log(`✅ Succès : -${somme} XOF de ID ${senderId}`);
+                            console.log(`✅ Reçu : +${montantNetDestinataire} XOF pour ID ${receiverId}`);
+                            console.log(`✅ Frais : +${montantFrais} XOF pour ${emailSysteme}`);
+                            
+                            res.json({ 
+                                success: true, 
+                                message: "Transfert effectué !",
+                                details: { frais: montantFrais.toFixed(0), net: montantNetDestinataire.toFixed(0) }
+                            });
+                        });
+                    });
+                });
+            });
         });
     });
 });
