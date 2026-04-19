@@ -19,50 +19,29 @@ const dbConfig = {
     connectTimeout: 10000 
 };
 
-// Force la création de la table et d'un utilisateur dès que le serveur démarre
-db.connect(err => {
-    if (err) {
-        console.log('❌ Erreur de connexion :', err.message);
-        setTimeout(handleDisconnect, 2000);
-    } else {
-        console.log('✅ Connecté avec succès à Aiven Cloud');
-
-        // Initialisation automatique de la base
-        const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            nom VARCHAR(100),
-            email VARCHAR(100) UNIQUE,
-            pin VARCHAR(10),
-            solde DECIMAL(15, 2) DEFAULT 0.00
-        );;
-
-        db.query(tableQuery, (err) => {
-            if (err) return console.log("Erreur table:", err);
-            
-            const userQuery = INSERT IGNORE INTO utilisateurs (nom, email, pin, solde) 
-                               VALUES ('Test User', 'test@lean.com', '1234', 5000000.00);;
-            
-            db.query(userQuery, (err) => {
-                if (!err) console.log("🚀 Base prête et compte de test créé !");
-            });
-        });
-    }
-});
-
-// Appelle cette fonction après ta connexion réussie à la DB
-setupDB();
-
+// 1. Configuration (Vérifie bien que DB_NAME est 'leandb' dans ton .env sur Render)
+const dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'leandb', 
+    port: process.env.DB_PORT || 26250,
+    ssl: { rejectUnauthorized: false },
+    connectTimeout: 10000
+};
 
 let db;
+
 function handleDisconnect() {
     db = mysql.createConnection(dbConfig);
 
     db.connect(err => {
         if (err) {
-            console.log('❌ Erreur de connexion :', err.message);
-            setTimeout(handleDisconnect, 2000);
+            console.log('❌ Erreur de connexion Aiven :', err.message);
+            setTimeout(handleDisconnect, 2000); // Réessaie si ça échoue
         } else {
             console.log('✅ Connecté avec succès à Aiven Cloud');
+            initialiserBaseDeDonnees();
         }
     });
 
@@ -70,12 +49,36 @@ function handleDisconnect() {
         if (err.code === 'PROTOCOL_CONNECTION_LOST') {
             handleDisconnect();
         } else {
-            console.error('Erreur DB fatale:', err);
+            throw err;
         }
     });
 }
 
-handleDisconnect();
+function initialiserBaseDeDonnees() {
+    const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nom VARCHAR(100),
+        email VARCHAR(100) UNIQUE,
+        pin VARCHAR(10),
+        solde DECIMAL(15, 2) DEFAULT 0.00
+    );;
+
+    db.query(tableQuery, (err) => {
+        if (err) return console.log("Erreur création table:", err);
+        
+        const userQuery = INSERT IGNORE INTO utilisateurs (nom, email, pin, solde) 
+                           VALUES ('Test User', 'test@lean.com', '1234', 5000000.00);;
+        
+        db.query(userQuery, (err) => {
+            if (err) console.log("Erreur insertion utilisateur:", err);
+            else console.log("🚀 Base prête et compte de test (5M XOF) vérifié !");
+        });
+    });
+}
+
+handleDisconnect(); // On lance la machine
+
+
 // --- ROUTES DE L'APPLICATION ---
 
 // 1. Inscription
