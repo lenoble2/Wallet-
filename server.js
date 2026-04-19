@@ -104,10 +104,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const express = require('express');
-const app = express();
-app.use(express.json());
-
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005; // Soit 0,5%
 
