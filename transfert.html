@@ -2,28 +2,89 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Transfert de Fonds</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfert Lean Wallet</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; max-width: 400px; }
-        .info { font-size: 0.9em; color: #666; margin-top: 10px; }
-        input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; }
+        /* Mise en page plein écran */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f7f6;
+        }
+
+        .container { 
+            width: 100%;
+            height: 100%;
+            max-width: 500px; /* Limite la largeur sur tablette/PC pour rester joli */
+            background: white; 
+            padding: 40px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 { color: #333; text-align: center; margin-bottom: 30px; }
+        
+        label { font-weight: bold; color: #555; display: block; margin-top: 15px; }
+
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 8px;
+            font-size: 1.1em;
+            box-sizing: border-box; 
+        }
+
+        .info-box { 
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #007bff;
+        }
+
+        .info-box p { margin: 5px 0; color: #666; }
+
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 100%; 
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
-<div class="card">
+<div class="container">
     <h2>Effectuer un transfert</h2>
-    <label>Email du destinataire :</label>
-    <input type="email" id="destinataire" placeholder="ami@exemple.com">
+    
+    <label>ID du destinataire (ex: 08000...) :</label>
+    <input type="text" id="destinataireID" placeholder="08000XXX" maxlength="15">
 
-    <label>Montant à envoyer (€) :</label>
-    <input type="number" id="montant" placeholder="0.00" oninput="calculerFrais()">
+    <label>Montant à envoyer (XOF) :</label>
+    <input type="number" id="montant" placeholder="0" oninput="calculerFrais()">
 
-    <div class="info">
-        Frais de service (0.5%) : <span id="frais">0.00</span>€<br>
-        <strong>Total débité : <span id="total">0.00</span>€</strong>
+    <div class="info-box">
+        <p>Frais de service (0.5%) : <strong><span id="frais">0</span> XOF</strong></p>
+        <p style="font-size: 1.2em; color: #333;">Total débité : <strong><span id="total">0</span> XOF</strong></p>
     </div>
 
     <button onclick="envoyerTransfert()">Confirmer le transfert</button>
@@ -35,28 +96,47 @@
     function calculerFrais() {
         const montant = parseFloat(document.getElementById('montant').value) || 0;
         const frais = montant * TAUX;
-        const total = montant; // Ici on considère que les 0.5% sont inclus dans le débit total
-
-        document.getElementById('frais').innerText = frais.toFixed(2);
-        document.getElementById('total').innerText = total.toFixed(2);
+        // Le total débité est le montant saisi (les frais sont déduits ou ajoutés selon ta logique serveur)
+        document.getElementById('frais').innerText = frais.toFixed(0); 
+        document.getElementById('total').innerText = montant.toFixed(0);
     }
 
     async function envoyerTransfert() {
+        const idDest = document.getElementById('destinataireID').value;
+        const montantVal = parseFloat(document.getElementById('montant').value);
+
+        if (!idDest.startsWith("08000")) {
+            alert("L'ID doit commencer par 08000");
+            return;
+        }
+
+        if (!montantVal || montantVal <= 0) {
+            alert("Veuillez saisir un montant valide");
+            return;
+        }
+
         const data = {
-            destinataire: document.getElementById('destinataire').value,
-            montant: parseFloat(document.getElementById('montant').value),
-            expediteurId: "user_123" // Simulé
+            destinataireID: idDest,
+            montant: montantVal,
+            expediteurId: "user_actuel" // À remplacer par l'ID de la session
         };
 
-        const response = await fetch('/api/transfert', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+        try {
+            const response = await fetch('/api/transfert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-        const result = await response.json();
-        if(result.success) {
-            alert(Succès ! ${result.details.frais}€ de frais ont été envoyés à pourcent@lean.com);
+const result = await response.json();
+            if(result.success) {
+                alert(Transfert réussi ! Frais système : ${result.details.frais} XOF envoyés à pourcent@lean.com);
+                window.location.href = "dashboard.html";
+            } else {
+                alert("Erreur : " + result.error);
+            }
+        } catch (error) {
+            alert("Erreur de connexion au serveur");
         }
     }
 </script>
