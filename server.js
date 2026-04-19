@@ -19,8 +19,33 @@ const dbConfig = {
     connectTimeout: 10000 
 };
 
-let db;
+// Force la création de la table et d'un utilisateur dès que le serveur démarre
+const setupDB = () => {
+  const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    pin VARCHAR(10),
+    solde DECIMAL(15, 2) DEFAULT 0.00
+  );;
 
+  const userQuery = INSERT IGNORE INTO utilisateurs (nom, email, pin, solde) 
+                     VALUES ('Test User', 'test@lean.com', '1234', 5000000.00);;
+
+  db.query(tableQuery, (err) => {
+    if (!err) {
+      db.query(userQuery, (err) => {
+        if (!err) console.log("✅ Base de données prête et utilisateur créé !");
+      });
+    }
+  });
+};
+
+// Appelle cette fonction après ta connexion réussie à la DB
+setupDB();
+
+
+let db;
 function handleDisconnect() {
     db = mysql.createConnection(dbConfig);
 
