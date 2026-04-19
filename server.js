@@ -105,30 +105,33 @@ app.get('/', (req, res) => {
 });
 
 const SYSTEM_EMAIL = "pourcent@lean.com";
-const FEE_PERCENTAGE = 0.005; // Soit 0,5%
+const FEE_PERCENTAGE = 0.005;
 
 app.post('/api/transfert', (req, res) => {
-    // On récupère destinataireID au lieu de destinataire
-    const { montant, destinataireID, expediteurId } = req.body; 
+    // Vérifie bien que les noms correspondent au JSON envoyé par le HTML
+    const { montant, destinataireID, expediteurId } = req.body;
 
-    if (!montant || montant <= 0) {
-        return res.status(400).json({ success: false, error: "Montant invalide" });
+    if (!montant || montant <= 0 || !destinataireID) {
+        return res.status(400).json({ success: false, error: "Données incomplètes" });
     }
 
-    const frais = montant * 0.005;
+    const frais = montant * FEE_PERCENTAGE;
     const montantNet = montant - frais;
 
-    // Logique de transfert dans ta base de données ici...
-    // Exemple : UPDATE users SET solde = solde - montant WHERE id = expediteurId...
+    console.log(`Transfert de ${montant} XOF vers ${destinataireID}. Frais: ${frais}`);
+
+    // AJOUTE ICI TA REQUÊTE SQL (MySQL/Aiven) pour modifier les soldes
+    // Exemple : db.query("UPDATE users SET solde = solde - ? WHERE id = ?", [montant, expediteurId]);
 
     res.json({
         success: true,
         details: {
             frais: frais.toFixed(0),
-            commissionEmail: "pourcent@lean.com"
+            montantNet: montantNet.toFixed(0)
         }
     });
 });
+
 
 
 handleDisconnect();
