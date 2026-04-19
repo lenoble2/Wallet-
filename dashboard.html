@@ -579,98 +579,93 @@ margin-left: 0px;
     
 </style>
 <script>
-    // Utilisation de votre serveur Render public
-async function chargerDonnees() {
-    // On récupère l'ID stocké lors de la connexion (ex: 1)
-    const userId = localStorage.getItem('userId'); 
+    // Utilisation de chemins relatifs pour fonctionner sur Render
+    const API_BASE = "/api";
 
-    if (!userId) {
-        window.location.href = 'login.html'; // Redirige si pas connecté
-        return;
-    }
+    async function chargerDonnees() {
+        const userId = localStorage.getItem('userId'); 
+        const userName = localStorage.getItem('userName');
+        const emailStocke = localStorage.getItem('userEmail');
 
-    try {
-        const response = await fetch(https://lean3.onrender.com/api/utilisateur/${userId});
-        const data = await response.json();
-
-        if (data.success) {
-            // Affichage de l'ID formaté (ex: 080001)
-            document.getElementById('user-id').innerText = data.id.toString().padStart(6, '08000');
-            
-            // Affichage du solde avec format monétaire
-            document.getElementById('user-solde').innerText = new Intl.NumberFormat('fr-FR').format(data.solde) + " XOF";
+        // Affichage immédiat des données locales en attendant le serveur
+        if (userId) {
+            document.getElementById('user-id-display').textContent = "ID: " + userId;
+            // Mise à jour du QR Code avec l'ID réel
+            const qrImg = document.getElementById('qr-image');
+            if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${userId}`;
         }
-    } catch (error) {
-        console.error("Erreur de chargement :", error);
-    }
-}
+        
+        if (emailStocke) {
+            document.getElementById('user-email-display').textContent = emailStocke;
+        }
 
-window.onload = chargerDonnees;
+        if (!userId || userId === "undefined") {
+            console.log("Session vide, redirection...");
+            return;
+        }
 
-
-        // 5. APPEL AU SERVEUR POUR LE SOLDE ET L'EMAIL
         try {
-            const response = await fetch(${SERVER_URL}/solde/${rawId});
+            // Appel à la route que nous avons créée dans server.js
+            const response = await fetch(`${API_BASE}/utilisateur/${userId}`);
             const data = await response.json();
 
-            if (data.success) {
-                document.getElementById('user-email-display').textContent = data.email || emailStocke;
-                const montant = parseFloat(data.solde) || 0;
+            if (data.success && data.user) {
+                // Mise à jour de l'email depuis la base de données
+                document.getElementById('user-email-display').textContent = data.user.email;
+                
+                // Affichage du solde avec formatage (ex: 5 000 000.00)
+                const montant = parseFloat(data.user.solde) || 0;
                 document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
             }
         } catch (error) {
-            console.error("Erreur réseau vers Render");
-            document.getElementById('solde').textContent = "---";
+            console.error("Erreur de chargement du solde");
+            document.getElementById('solde').textContent = "Erreur";
         }
 
-        chargerHistorique(rawId);
+        // On appelle l'historique (pense à créer la route /api/historique plus tard)
+        chargerHistorique(userId);
     }
 
     async function chargerHistorique(userId) {
         const container = document.getElementById('liste-transactions');
         try {
-            const response = await fetch(${SERVER_URL}/historique/${userId});
+            const response = await fetch(`${API_BASE}/historique/${userId}`);
             const data = await response.json();
 
-            if (data.success && data.transactions.length > 0) {
+            if (data.success && data.transactions && data.transactions.length > 0) {
                 container.innerHTML = ""; 
-                
                 data.transactions.forEach(t => {
-                    // Comparaison stricte pour déterminer si c'est un débit ou crédit
-                    const isOut = String(t.expediteur_id) === String(userId);
-                    
+                    const isOut = t.expediteur_id == userId;
                     const couleur = isOut ? "#e74c3c" : "#2ecc71";
                     const signe = isOut ? "-" : "+";
+                    const nomAffiche = isOut ? "Vers: " + t.destinataire : "De: " + t.expediteur;
                     
-                    const nomAffiche = isOut 
-                        ? "Vers: " + (t.nom_destinataire || "Inconnu") 
-                        : "De: " + (t.nom_expediteur || "Inconnu");
-                    
-                    container.innerHTML += 
+                    container.innerHTML += `
                         <div class="transaction-item">
                             <div class="trans-info">
                                 <span class="trans-name">${nomAffiche}</span>
-                                <span class="trans-date">${new Date(t.date_transaction).toLocaleDateString('fr-FR')}</span>
+                                <span class="trans-date">${new Date(t.date).toLocaleDateString()}</span>
                             </div>
                             <div class="trans-amount" style="color: ${couleur};">
                                 ${signe}${t.montant} XOF
                             </div>
                         </div>
-                    ;
+                    `;
                 });
             } else {
-                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction.</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité pour le moment.</p>";
             }
         } catch (error) {
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:red;'>Erreur historique.</p>";
+            // On laisse discret si la route n'existe pas encore
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique bientôt disponible.</p>";
         }
     }
 
-    // Lancement automatique au chargement
     window.onload = chargerDonnees;
+
 </script>
 </body>
 </html>
