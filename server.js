@@ -141,11 +141,6 @@ app.post('/api/transfert', (req, res) => {
     });
 });
 
-app.listen(3000, () => console.log("Serveur lancé sur le port 3000"));
-
-
-
-
 handleDisconnect();
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
