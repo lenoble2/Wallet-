@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
@@ -110,24 +111,28 @@ const FEE_PERCENTAGE = 0.005;
 app.post('/api/transfert', (req, res) => {
     const { montant, destinataireID, expediteurId } = req.body;
 
-    // 1. Débiter l'expéditeur
-    db.query("UPDATE users SET solde = solde - ? WHERE id = ?", [montant, expediteurId], (err, result) => {
+    // ÉTAPE 1 : Débiter l'expéditeur (Table: utilisateurs)
+    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [montant, expediteurId], (err, result) => {
         if (err) {
-            console.error(err);
+            console.error("Erreur Débit:", err);
             return res.status(500).json({ success: false, error: "Erreur débit" });
         }
-
-        // 2. Créditer le destinataire
+        
+        // ÉTAPE 2 : Créditer le destinataire
         const frais = montant * 0.005;
-        db.query("UPDATE users SET solde = solde + ? WHERE id = ?", [montant - frais, destinataireID], (err2) => {
+        const montantNet = montant - frais;
+        
+        db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNet, destinataireID], (err2) => {
             if (err2) {
+                console.error("Erreur Crédit:", err2);
                 return res.status(500).json({ success: false, error: "Erreur crédit" });
             }
 
-            res.json({ success: true, message: "Transfert réussi" });
+            res.json({ success: true, message: "Transfert réussi !" });
         });
     });
 });
+
 
 
 
