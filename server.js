@@ -107,29 +107,41 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-app.post('/api/transfert', (req, res) => {
-    // Vérifie bien que les noms correspondent au JSON envoyé par le HTML
+app.post('/api/transfert', async (req, res) => {
     const { montant, destinataireID, expediteurId } = req.body;
 
     if (!montant || montant <= 0 || !destinataireID) {
-        return res.status(400).json({ success: false, error: "Données incomplètes" });
+        return res.status(400).json({ success: false, error: "Données invalides" });
     }
 
-    const frais = montant * FEE_PERCENTAGE;
-    const montantNet = montant - frais;
+    const frais = montant * 0.005;
+    const montantTotal = montant; // Le montant que l'utilisateur a saisi
 
-    console.log(`Transfert de ${montant} XOF vers ${destinataireID}. Frais: ${frais}`);
+    try {
+        // 1. Débiter l'expéditeur
+        const debitSql = "UPDATE users SET solde = solde - ? WHERE id = ?";
+        await db.query(debitSql, [montantTotal, expediteurId]);
 
-    // AJOUTE ICI TA REQUÊTE SQL (MySQL/Aiven) pour modifier les soldes
-    // Exemple : db.query("UPDATE users SET solde = solde - ? WHERE id = ?", [montant, expediteurId]);
+        // 2. Créditer le destinataire
+        const creditSql = "UPDATE users SET solde = solde + ? WHERE id = ?";
+        await db.query(creditSql, [montantTotal - frais, destinataireID]);
 
-    res.json({
-        success: true,
-        details: {
-            frais: frais.toFixed(0),
-            montantNet: montantNet.toFixed(0)
-        }
-    });
+        // 3. Envoyer les frais au compte système (Optionnel)
+        const fraisSql = "UPDATE users SET solde = solde + ? WHERE email = ?";
+        await db.query(fraisSql, [frais, "pourcent@lean.com"]);
+
+        console.log(`✅ Transfert réussi : ${montantTotal} XOF débités de ${expediteurId}`);
+
+        res.json({
+            success: true,
+            message: "Transfert effectué avec succès",
+            details: { frais: frais.toFixed(0) }
+        });
+
+    } catch (err) {
+        console.error("❌ Erreur SQL :", err);
+        res.status(500).json({ success: false, error: "Erreur lors de la mise à jour des soldes" });
+    }
 });
 
 
