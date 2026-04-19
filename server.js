@@ -39,17 +39,27 @@ function handleDisconnect() {
 }
 
 function initialiserBase() {
-    const tableQuery = `CREATE TABLE IF NOT EXISTS utilisateurs (
+    const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nom VARCHAR(100),
         email VARCHAR(100) UNIQUE,
         pin VARCHAR(10),
         solde DECIMAL(15, 2) DEFAULT 0.00
-    );`;
-    db.query(tableQuery);
-}
+    );;
 
-// --- NOUVELLES ROUTES API ---
+    db.query(tableQuery, (err) => {
+        if (err) return console.log("❌ Erreur table:", err.message);
+        
+        // On utilise REPLACE au lieu d'INSERT IGNORE pour être sûr de mettre à jour le PIN à '1234'
+        const userQuery = REPLACE INTO utilisateurs (id, nom, email, pin, solde) 
+                           VALUES (1, 'Test User', 'test@lean.com', '1234', 5000000.00);;
+        
+        db.query(userQuery, (err) => {
+            if (err) console.log("❌ Erreur de création du compte test:", err.message);
+            else console.log("🚀 Compte test@lean.com (PIN: 1234) est maintenant ACTIF !");
+        });
+    });
+}
 
 // 1. Inscription
 app.post('/api/inscription', (req, res) => {
