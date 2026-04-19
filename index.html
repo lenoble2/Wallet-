@@ -94,7 +94,9 @@
     </form>
 
     <div class="footer-links">
-        <div>Déjà un compte ? <a href="login.html">Se connecter ici</a></div>
+
+
+2        <div>Déjà un compte ? <a href="login.html">Se connecter ici</a></div>
         <div><a href="login.html"></a></div>
     </div>
 </div>
@@ -103,8 +105,8 @@
     const form = document.getElementById('registerForm');
     const btn = document.getElementById('btnSInscrire');
     
-    // URL mise à jour pour correspondre à votre backend
-    const API_URL = "https://lean3.onrender.com";
+    // Utilisation d'un chemin relatif pour éviter les erreurs de domaine (CORS/Timeout)
+    const API_ENDPOINT = "/api/inscription";
 
     form.onsubmit = async (e) => {
         e.preventDefault();
@@ -123,28 +125,40 @@
         btn.innerText = "Création...";
 
         try {
-            const response = await fetch(`${API_URL}/api/inscription`, {
+            // Appel au serveur via le chemin relatif
+            const response = await fetch(API_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nom, email, pin })
             });
 
+            // Vérifie si le serveur a répondu (code 200-299)
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Erreur serveur");
+            }
+
             const data = await response.json();
 
             if (data.success) {
-                // Stockage des infos et redirection vers dashboard.html
+                // Stockage des infos pour le Dashboard
                 if (data.user) {
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('userName', data.user.nom);
+                } else {
+                    // Si le serveur ne renvoie pas l'user direct, on stocke l'email pour le login
+                    localStorage.setItem('userEmail', email);
                 }
+                
+                alert("Compte créé avec succès !");
                 window.location.href = 'dashboard.html';
             } else {
-                alert("Erreur : " + (data.message || "Impossible de créer le compte"));
+                alert("Erreur : " + data.message);
                 resetButton();
             }
         } catch (error) {
-            console.error("Erreur:", error);
-            alert("Erreur de connexion au serveur Render.");
+            console.error("Erreur détaillée:", error);
+            alert("Le serveur ne répond pas. Vérifiez que l'instance Render est active ou réessayez dans 30 secondes.");
             resetButton();
         }
     };
@@ -154,6 +168,7 @@
         btn.innerText = "S'inscrire";
     }
 </script>
+
 </body>
 </html>
 

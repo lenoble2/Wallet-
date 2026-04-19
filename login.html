@@ -77,50 +77,48 @@
         Nouveau ici ? <a href="index.html">Créer un compte</a>
     </div>
 </div>
-
 <script>
     const form = document.getElementById('loginForm');
     const btn = document.getElementById('btnConnecter');
 
-    // Configuration de l'API
-    const API_URL = "https://lean3.onrender.com";
+    // Utilisation d'un chemin relatif (plus fiable sur Render)
+    const API_ENDPOINT = "/api/connexion";
 
     form.onsubmit = async (e) => {
         e.preventDefault();
         
-        // Verrouillage du bouton pour éviter les doubles clics
         btn.disabled = true;
         btn.innerText = "Connexion...";
 
-        const emailSaisi = document.getElementById('email').value.trim();
-        const pinSaisi = document.getElementById('pin').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const pin = document.getElementById('pin').value.trim();
 
         try {
-            const response = await fetch(`${API_URL}/api/connexion`, {
+            const response = await fetch(API_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailSaisi, pin: pinSaisi })
+                body: JSON.stringify({ email, pin })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Stockage des informations utilisateur
+                // On enregistre les données renvoyées par Aiven via le serveur
                 if (data.user) {
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('userEmail', data.user.email);
                     localStorage.setItem('userName', data.user.nom);
                 }
                 
-                // Redirection immédiate vers le dashboard
+                // Redirection vers le tableau de bord
                 window.location.href = 'dashboard.html'; 
             } else {
-                alert("Erreur : " + (data.message || "Email ou PIN incorrect"));
+                alert("Échec : " + (data.message || "Email ou PIN incorrect"));
                 resetButton();
             }
         } catch (error) {
             console.error("Erreur de connexion:", error);
-            alert("Le serveur ne répond pas. Vérifiez que l'instance Render est active.");
+            alert("Connexion impossible. Si le site vient d'être ouvert, attendez 30 secondes que le serveur Render se réveille.");
             resetButton();
         }
     };
@@ -129,6 +127,7 @@
         btn.disabled = false;
         btn.innerText = "Se connecter";
     }
+
 </script>
 </body>
 </html>
