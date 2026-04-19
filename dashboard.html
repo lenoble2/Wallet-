@@ -580,31 +580,33 @@ margin-left: 0px;
 </style>
 <script>
     // Utilisation de votre serveur Render public
-    const SERVER_URL = "https://lean3.onrender.com";
+async function chargerDonnees() {
+    // On récupère l'ID stocké lors de la connexion (ex: 1)
+    const userId = localStorage.getItem('userId'); 
 
-    async function chargerDonnees() {
-        // 1. Récupération de l'ID brut dans le stockage du téléphone
-        const rawId = localStorage.getItem('userId'); 
-        const emailStocke = localStorage.getItem('userEmail');
-        const displayID = document.getElementById('user-id-display');
+    if (!userId) {
+        window.location.href = 'login.html'; // Redirige si pas connecté
+        return;
+    }
 
-        // 2. Vérification si l'utilisateur est bien connecté
-        if (!rawId  rawId === "undefined"  rawId === "null") {
-            if(displayID) displayID.textContent = "Session expirée";
-            return;
+    try {
+        const response = await fetch(https://lean3.onrender.com/api/utilisateur/${userId});
+        const data = await response.json();
+
+        if (data.success) {
+            // Affichage de l'ID formaté (ex: 080001)
+            document.getElementById('user-id').innerText = data.id.toString().padStart(6, '08000');
+            
+            // Affichage du solde avec format monétaire
+            document.getElementById('user-solde').innerText = new Intl.NumberFormat('fr-FR').format(data.solde) + " XOF";
         }
+    } catch (error) {
+        console.error("Erreur de chargement :", error);
+    }
+}
 
-        // 3. Formatage de l'ID avec 08000
-        const formattedId = "08000" + rawId;
+window.onload = chargerDonnees;
 
-        // 4. AFFICHAGE IMMÉDIAT DU NUMÉRO ID ET DU QR CODE
-        displayID.textContent = "ID: " + formattedId;
-        
-        const qrImg = document.getElementById('qr-image');
-        if(qrImg) {
-            // Le QR Code contiendra aussi le numéro 08000...
-            qrImg.src = https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${formattedId};
-        }
 
         // 5. APPEL AU SERVEUR POUR LE SOLDE ET L'EMAIL
         try {

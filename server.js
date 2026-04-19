@@ -106,12 +106,31 @@ app.post('/api/transferer', (req, res) => {
 });
 
 // 4. Servir la page d'accueil (Dashboard ou Index)
-app.get('/api/user/:id', async (req, res) => {
+// Route pour récupérer les infos d'un utilisateur spécifique
+app.get('/api/utilisateur/:id', async (req, res) => {
     const userId = req.params.id;
-    // Requête SQL pour récupérer l'utilisateur dans MariaDB ou Supabase
-    // SELECT id, nom, email, solde FROM users WHERE id = ?
-    // ... renvoyer le résultat en JSON
+    try {
+        // Connexion à la base de données (Aiven ou Local)
+        const [rows] = await connection.execute(
+            'SELECT id, solde, email FROM utilisateurs WHERE id = ?', 
+            [userId]
+        );
+
+        if (rows.length > 0) {
+            res.json({
+                success: true,
+                id: rows[0].id,
+                solde: rows[0].solde,
+                email: rows[0].email
+            });
+        } else {
+            res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
+
 
 // --- LANCEMENT DU SERVEUR ---
 const PORT = 10000;
