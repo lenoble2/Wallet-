@@ -147,15 +147,17 @@
                 <div class="card-details">
                     <div id="user-id-display" style="font-weight: bold; color: black; font-size: 18px;">ID: --</div>
                     <div id="user-email-display" style="color: gray; font-size: 11px; margin-bottom: 8px;">
-<div class="user-info">
-    <div class="user-id">ID: <span id="displayID">--</span></div>
-    <div class="user-name" id="displayUserName">Chargement...</div>
-    <div class="user-balance">Solde: <strong id="displaySolde">0.00</strong> XOF</div>
-</div>
-                    </div>
-                </div>
-            </div>
+<div class="card-details">
+    <div id="user-id-display" style="font-weight: bold; color: black; font-size: 16px; margin-bottom: 2px;">ID: --</div>
+    
+    <div class="solde-principal" style="margin-top: 10px;">
+        <div style="color: gray; font-size: 12px; font-weight: bold; text-transform: uppercase;">Solde disponible</div>
+        <div style="color: #000088; font-size: 28px; font-weight: bold; line-height: 1.2;">
+            <span id="solde">0.00</span> <small style="font-size: 14px;">XOF</small>
         </div>
+    </div>
+</div>
+
 
         <nav class="action-grid">
             <a href="transfert.html" class="action-item">
@@ -589,47 +591,41 @@ margin-left: 0px;
         return "08000" + id;
     }
 
-    async function chargerDonnees() {
-        const userId = localStorage.getItem('userId'); 
-        const userName = localStorage.getItem('userName');
-        const emailStocke = localStorage.getItem('userEmail');
-
-        // 1. Affichage immédiat avec le préfixe 08000
-        if (userId) {
-            const idFormate = formaterID(userId);
-            document.getElementById('user-id-display').textContent = "ID: " + idFormate;
-            
-            // Le QR Code contiendra aussi l'ID formaté pour plus de style
-            const qrImg = document.getElementById('qr-image');
-            if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${idFormate}`;
-        }
+async function chargerDonnees() {
+    const userId = localStorage.getItem('userId'); 
+    
+    if (userId) {
+        // Affichage de l'ID formaté (ex: 0800028)
+        const idFormate = "08000" + userId;
+        document.getElementById('user-id-display').textContent = "ID: " + idFormate;
         
-        if (emailStocke) {
-            document.getElementById('user-email-display').textContent = emailStocke;
-        }
-
-        if (!userId || userId === "undefined") return;
-
-        try {
-            const response = await fetch(`${API_BASE}/utilisateur/${userId}`);
-            const data = await response.json();
-
-            if (data.success && data.user) {
-                document.getElementById('user-email-display').textContent = data.user.email;
-                
-                const montant = parseFloat(data.user.solde) || 0;
-                document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-        } catch (error) {
-            console.error("Erreur de chargement");
-            document.getElementById('solde').textContent = "Erreur";
-        }
-
-        chargerHistorique(userId);
+        // Mise à jour du QR code
+        const qrImg = document.getElementById('qr-image');
+        if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${idFormate}`;
     }
+
+    if (!userId || userId === "undefined") return;
+
+    try {
+        // Récupération des données réelles depuis ton serveur Render
+        const response = await fetch(`/api/utilisateur/${userId}`);
+        const data = await response.json();
+
+        if (data.success && data.user) {
+            // Affichage du solde agrandi
+            const montant = parseFloat(data.user.solde) || 0;
+            document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+    } catch (error) {
+        console.error("Erreur serveur");
+        document.getElementById('solde').textContent = "---";
+    }
+
+    chargerHistorique(userId);
+}
 
     async function chargerHistorique(userId) {
         const container = document.getElementById('liste-transactions');
