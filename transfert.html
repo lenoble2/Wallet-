@@ -2,105 +2,64 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfert - Lean</title>
+    <title>Transfert de Fonds</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f4f4f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        h2 { color: #000080; margin-bottom: 20px; }
-        label { display: block; text-align: left; margin-bottom: 5px; color: #666; font-size: 14px; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #000080; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; font-size: 16px; }
-        button:hover { background: #000066; }
-        #msg { margin-top: 15px; font-weight: bold; min-height: 20px; }
-        .back-link { display: inline-block; margin-top: 20px; color: #000080; text-decoration: none; font-size: 14px; }
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; max-width: 400px; }
+        .info { font-size: 0.9em; color: #666; margin-top: 10px; }
+        input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>Transférer de l'argent</h2>
-        
-        <label for="destId">ID du destinataire</label>
-        <input type="number" id="destId" placeholder="Exemple: 2">
-        
-        <label for="montant">Montant (XOF)</label>
-        <input type="number" id="montant" placeholder="0.00">
-        
-        <button id="btnEnvoyer" onclick="envoyerArgent()">Confirmer l'envoi</button>
-        
-        <p id="msg"></p>
-        
-        <a href="accueil.html" class="back-link">← Retour au portefeuille</a>
+
+<div class="card">
+    <h2>Effectuer un transfert</h2>
+    <label>Email du destinataire :</label>
+    <input type="email" id="destinataire" placeholder="ami@exemple.com">
+
+    <label>Montant à envoyer (€) :</label>
+    <input type="number" id="montant" placeholder="0.00" oninput="calculerFrais()">
+
+    <div class="info">
+        Frais de service (0.5%) : <span id="frais">0.00</span>€<br>
+        <strong>Total débité : <span id="total">0.00</span>€</strong>
     </div>
 
-    <script>
-        async function envoyerArgent() {
-            const btn = document.getElementById('btnEnvoyer');
-            const msg = document.getElementById('msg');
-            
-            // 1. Récupération des données
-            const senderId = localStorage.getItem('userId'); // Ton ID (ex: ID d'Odile)
-            const receiverId = document.getElementById('destId').value;
-            const montant = document.getElementById('montant').value;
+    <button onclick="envoyerTransfert()">Confirmer le transfert</button>
+</div>
 
-            // Validation simple
-            if (!receiverId || !montant || montant <= 0) {
-                msg.style.color = "orange";
-                msg.innerText = "Veuillez entrer un ID et un montant valide.";
-                return;
-            }
+<script>
+    const TAUX = 0.005;
 
-            if (senderId === receiverId) {
-                msg.style.color = "orange";
-                msg.innerText = "Vous ne pouvez pas vous envoyer d'argent à vous-même.";
-                return;
-            }
+    function calculerFrais() {
+        const montant = parseFloat(document.getElementById('montant').value) || 0;
+        const frais = montant * TAUX;
+        const total = montant; // Ici on considère que les 0.5% sont inclus dans le débit total
 
-            // Désactiver le bouton pendant l'envoi
-            btn.disabled = true;
-            btn.innerText = "Traitement...";
-            msg.innerText = "";
+        document.getElementById('frais').innerText = frais.toFixed(2);
+        document.getElementById('total').innerText = total.toFixed(2);
+    }
 
-            try {
-                // 2. Appel à l'API de ton serveur Termux
-                const response = await fetch('http://10.97.154.31:8080/api/transfert', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        senderId: senderId, 
-                        receiverId: receiverId, 
-                        montant: montant 
-                    })
-                });
+    async function envoyerTransfert() {
+        const data = {
+            destinataire: document.getElementById('destinataire').value,
+            montant: parseFloat(document.getElementById('montant').value),
+            expediteurId: "user_123" // Simulé
+        };
 
-                const data = await response.json();
+        const response = await fetch('/api/transfert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
 
-                if (data.success) {
-                    // 3. Succès : Débit effectué dans la DB
-                    msg.style.color = "green";
-                    msg.innerText = "✔ " + data.message;
-                    
-                    // Redirection vers l'accueil pour voir le nouveau solde débité
-                    setTimeout(() => {
-                        window.location.href = "accueil.html";
-                    }, 1500);
-                } else {
-                    // Erreur renvoyée par le serveur (ex: Solde insuffisant)
-                    msg.style.color = "red";
-                    msg.innerText = "✘ " + data.message;
-                    btn.disabled = false;
-                    btn.innerText = "Confirmer l'envoi";
-                }
-            } catch (error) {
-                // Erreur de connexion (Serveur injoignable)
-                msg.style.color = "red";
-                msg.innerText = "Erreur : Impossible de joindre le serveur.";
-                btn.disabled = false;
-                btn.innerText = "Confirmer l'envoi";
-            }
+        const result = await response.json();
+        if(result.success) {
+            alert(Succès ! ${result.details.frais}€ de frais ont été envoyés à pourcent@lean.com);
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
-
-

@@ -104,8 +104,49 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-handleDisconnect();
+const express = require('express');
+const app = express();
+app.use(express.json());
 
+const SYSTEM_EMAIL = "pourcent@lean.com";
+const FEE_PERCENTAGE = 0.005; // Soit 0,5%
+
+app.post('/api/transfert', (req, res) => {
+    const { montant, destinataire, expediteurId } = req.body;
+
+    if (montant <= 0) {
+        return res.status(400).json({ error: "Montant invalide" });
+    }
+
+    // Calcul des frais et du montant final
+    const frais = montant * FEE_PERCENTAGE;
+    const montantNet = montant - frais;
+
+    console.log(`Transaction initiée par : ${expediteurId}`);
+    console.log(`Montant total débité : ${montant}€`);
+    console.log(`Frais (0.5%) envoyés à ${SYSTEM_EMAIL} : ${frais}€`);
+    console.log(`Montant reçu par ${destinataire} : ${montantNet}€`);
+
+    // Ici, vous ajouteriez votre logique de base de données (ex: Prisma, Mongoose)
+    // pour effectuer les virements réels.
+
+    res.json({
+        success: true,
+        details: {
+            debitTotal: montant,
+            frais: frais.toFixed(2),
+            recuParDestinataire: montantNet.toFixed(2),
+            commissionEmail: SYSTEM_EMAIL
+        }
+    });
+});
+
+app.listen(3000, () => console.log("Serveur lancé sur le port 3000"));
+
+
+
+
+handleDisconnect();
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`🌍 Serveur Lean opérationnel sur le port ${PORT}`);
