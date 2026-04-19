@@ -80,8 +80,8 @@
     <input type="text" id="destinataireID" placeholder="08000XXX" maxlength="15">
 
     <label>Montant à envoyer (XOF) :</label>
-    <input type="number" id="montant" placeholder="0" oninput="calculerFrais()">
-
+<input type="number" id="montant" placeholder="0" oninput="calculerFrais()" onchange="calculerFrais()">
+  
     <div class="info-box">
         <p>Frais de service (0.5%) : <strong><span id="frais">0</span> XOF</strong></p>
         <p style="font-size: 1.2em; color: #333;">Total débité : <strong><span id="total">0</span> XOF</strong></p>
