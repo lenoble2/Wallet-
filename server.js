@@ -47,24 +47,29 @@ function initialiserBase() {
         solde DECIMAL(15, 2) DEFAULT 0.00
     );`;
 
-// À l'intérieur de ta fonction d'initialisation de la base de données
-const sqlCoffre = 
-    INSERT INTO utilisateurs (nom, email, pin, solde) 
-    SELECT 'Coffre Fort', 'coffre@lean.com', '0000', 10000000.00
-    WHERE NOT EXISTS (SELECT 1 FROM utilisateurs WHERE email = 'coffre@lean.com')
-;
+    db.query(tableQuery, (err) => {
+        if (err) return console.log("❌ Erreur table:", err.message);
+        
+        // Vérification et création du compte COFFRE
+        db.query('SELECT id FROM utilisateurs WHERE email = ?', ['coffre@lean.com'], (err, results) => {
+            if (err) return console.log("❌ Erreur SQL:", err.message);
 
-db.query(sqlCoffre, (err, result) => {
-    if (err) {
-        console.error("Erreur lors de la création du compte Coffre :", err);
-    } else if (result.affectedRows > 0) {
-        console.log("Compte coffre@lean.com créé avec 10 000 000 XOF !");
-    } else {
-        // Si le compte existe déjà, on met quand même le solde à jour
-        db.query("UPDATE utilisateurs SET solde = 10000000.00 WHERE email = 'coffre@lean.com'");
-        console.log("Solde du compte Coffre mis à jour.");
-    }
-});
+            if (results.length === 0) {
+                const insertCoffre = `INSERT INTO utilisateurs (nom, email, pin, solde) 
+                                     VALUES ('Coffre Fort', 'coffre@lean.com', '0000', 10000000.00)`;
+                db.query(insertCoffre, (err) => {
+                    if (err) console.log("❌ Erreur création Coffre:", err.message);
+                    else console.log("💰 Compte coffre@lean.com créé avec 10 000 000 XOF !");
+                });
+            } else {
+                db.query('UPDATE utilisateurs SET solde = 10000000.00 WHERE email = ?', ['coffre@lean.com'], (err) => {
+                    if (err) console.log("❌ Erreur MAJ Coffre:", err.message);
+                    else console.log("✅ Solde du Coffre mis à jour.");
+                });
+            }
+        });
+    });
+}
 
    
 
