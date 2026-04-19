@@ -578,42 +578,45 @@ margin-left: 0px;
 
     
 </style>
+
 <script>
-    // Utilisation de chemins relatifs pour fonctionner sur Render
     const API_BASE = "/api";
+
+    // Fonction pour formater l'ID avec le préfixe 08000
+    function formaterID(id) {
+        if (!id) return "--";
+        // Retourne 08000 suivi de l'ID (ex: 1 devient 080001)
+        return "08000" + id;
+    }
 
     async function chargerDonnees() {
         const userId = localStorage.getItem('userId'); 
         const userName = localStorage.getItem('userName');
         const emailStocke = localStorage.getItem('userEmail');
 
-        // Affichage immédiat des données locales en attendant le serveur
+        // 1. Affichage immédiat avec le préfixe 08000
         if (userId) {
-            document.getElementById('user-id-display').textContent = "ID: " + userId;
-            // Mise à jour du QR Code avec l'ID réel
+            const idFormate = formaterID(userId);
+            document.getElementById('user-id-display').textContent = "ID: " + idFormate;
+            
+            // Le QR Code contiendra aussi l'ID formaté pour plus de style
             const qrImg = document.getElementById('qr-image');
-            if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${userId}`;
+            if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${idFormate}`;
         }
         
         if (emailStocke) {
             document.getElementById('user-email-display').textContent = emailStocke;
         }
 
-        if (!userId || userId === "undefined") {
-            console.log("Session vide, redirection...");
-            return;
-        }
+        if (!userId || userId === "undefined") return;
 
         try {
-            // Appel à la route que nous avons créée dans server.js
             const response = await fetch(`${API_BASE}/utilisateur/${userId}`);
             const data = await response.json();
 
             if (data.success && data.user) {
-                // Mise à jour de l'email depuis la base de données
                 document.getElementById('user-email-display').textContent = data.user.email;
                 
-                // Affichage du solde avec formatage (ex: 5 000 000.00)
                 const montant = parseFloat(data.user.solde) || 0;
                 document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
@@ -621,11 +624,10 @@ margin-left: 0px;
                 });
             }
         } catch (error) {
-            console.error("Erreur de chargement du solde");
+            console.error("Erreur de chargement");
             document.getElementById('solde').textContent = "Erreur";
         }
 
-        // On appelle l'historique (pense à créer la route /api/historique plus tard)
         chargerHistorique(userId);
     }
 
@@ -656,16 +658,14 @@ margin-left: 0px;
                     `;
                 });
             } else {
-                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité pour le moment.</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité.</p>";
             }
         } catch (error) {
-            // On laisse discret si la route n'existe pas encore
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique bientôt disponible.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique indisponible.</p>";
         }
     }
 
     window.onload = chargerDonnees;
-
 </script>
 </body>
 </html>
