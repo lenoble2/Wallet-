@@ -39,27 +39,40 @@ function handleDisconnect() {
 }
 
 function initialiserBase() {
-    const tableQuery = CREATE TABLE IF NOT EXISTS utilisateurs (
+    const tableQuery = `CREATE TABLE IF NOT EXISTS utilisateurs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nom VARCHAR(100),
         email VARCHAR(100) UNIQUE,
         pin VARCHAR(10),
         solde DECIMAL(15, 2) DEFAULT 0.00
-    );;
+    );`;
 
     db.query(tableQuery, (err) => {
-        if (err) return console.log("❌ Erreur table:", err.message);
+        if (err) return console.log("❌ Erreur lors de la création de la table:", err.message);
         
-        // On utilise REPLACE au lieu d'INSERT IGNORE pour être sûr de mettre à jour le PIN à '1234'
-        const userQuery = REPLACE INTO utilisateurs (id, nom, email, pin, solde) 
-                           VALUES (1, 'Test User', 'test@lean.com', '1234', 5000000.00);;
-        
-        db.query(userQuery, (err) => {
-            if (err) console.log("❌ Erreur de création du compte test:", err.message);
-            else console.log("🚀 Compte test@lean.com (PIN: 1234) est maintenant ACTIF !");
+        // On vérifie d'abord si l'utilisateur existe
+        db.query('SELECT id FROM utilisateurs WHERE email = ?', ['test@lean.com'], (err, results) => {
+            if (err) return console.log("❌ Erreur vérification utilisateur:", err.message);
+
+            if (results.length === 0) {
+                // S'il n'existe pas, on l'insère
+                const insertQuery = `INSERT INTO utilisateurs (nom, email, pin, solde) 
+                                   VALUES ('Test User', 'test@lean.com', '1234', 5000000.00)`;
+                db.query(insertQuery, (err) => {
+                    if (err) console.log("❌ Erreur insertion test@lean.com:", err.message);
+                    else console.log("🚀 Compte test@lean.com créé avec succès !");
+                });
+            } else {
+                // S'il existe déjà, on met juste à jour le PIN pour être sûr
+                db.query('UPDATE utilisateurs SET pin = ? WHERE email = ?', ['1234', 'test@lean.com'], (err) => {
+                    if (err) console.log("❌ Erreur mise à jour PIN test:", err.message);
+                    else console.log("✅ Compte test@lean.com déjà présent et mis à jour.");
+                });
+            }
         });
     });
 }
+
 
 // 1. Inscription
 app.post('/api/inscription', (req, res) => {
