@@ -27,69 +27,37 @@
 
     <button onclick="valider()">Confirmer le transfert</button>
 </div>
-
 <script>
-    async function valider() {
-        console.log("Bouton cliqué"); // Pour vérifier que la fonction se lance
+    function valider() {
+        // TEST 1 : Vérifier si la fonction se lance
+        alert("Bouton cliqué !"); 
 
-        try {
-            // 1. Récupération des éléments
-            const destEl = document.getElementById('destId');
-            const montEl = document.getElementById('montantInput');
+        const destId = document.getElementById('destId').value;
+        const montant = document.getElementById('montantInput').value;
 
-            if (!destEl || !montEl) {
-                alert("Erreur : Éléments HTML introuvables");
-                return;
-            }
+        // TEST 2 : Voir les données capturées
+        alert("Données : Dest=" + destId + " Montant=" + montant);
 
-            const destinataireID = destEl.value.trim();
-            const montant = parseFloat(montantEl.value);
-            
-            // ID de test (à remplacer par la logique de session plus tard)
-            const expediteurID = "0800001"; 
+        const payload = {
+            senderId: "0800001", // ID test
+            receiverId: destId,
+            montant: parseFloat(montant)
+        };
 
-            // 2. Validation simple
-            if (destinataireID === ""  isNaN(montant)  montant <= 0) {
-                alert("Veuillez entrer un ID valide et un montant supérieur à 0.");
-                return;
-            }
-
-            const payload = {
-                senderId: expediteurID,
-                receiverId: destinataireID,
-                montant: montant
-            };
-
-            console.log("Envoi du payload:", payload);
-
-            // 3. Envoi de la requête
-            const resp = await fetch('https://lean3.onrender.com/api/transfert', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            // 4. Lecture de la réponse
-            const res = await resp.json();
-            console.log("Réponse reçue:", res);
-
-            if (res.success) {
-                alert("✅ Transfert réussi !");
-                location.reload();
-            } else {
-                alert("❌ Erreur du serveur : " + (res.message || res.error));
-            }
-
-        } catch (err) {
-            console.error("Erreur attrapée:", err);
-            alert("Le serveur est injoignable ou une erreur est survenue.");
-        }
+        fetch('https://lean3.onrender.com/api/transfert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Réponse du serveur : " + JSON.stringify(data));
+        })
+        .catch(error => {
+            alert("Erreur réseau : " + error);
+        });
     }
 </script>
-
 
 </body>
 </html>
