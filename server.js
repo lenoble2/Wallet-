@@ -137,7 +137,7 @@ db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, clean
         return res.json({ success: true, message: "Transfert réussi" });
     });
 });
-
+});
 
 handleDisconnect();
 const PORT = process.env.PORT || 10000;
