@@ -15,7 +15,7 @@ const dbConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME || 'leandb',
-    port: process.env.DB_PORT || 26250,
+    port: process.env.DB_PORT || 26246,
     ssl: { rejectUnauthorized: false },
     connectTimeout: 20000
 };
