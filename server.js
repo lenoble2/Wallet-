@@ -108,54 +108,26 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-
-
 app.post('/api/transfert', (req, res) => {
-    const { senderId, receiverId, montant } = req.body;
+    let { senderId, receiverId, montant } = req.body;
+
+    // Nettoyage des IDs : si l'ID est "080001", on garde juste "1"
+    const cleanSenderId = senderId.toString().replace(/^08000/, '');
+    const cleanReceiverId = receiverId.toString().replace(/^08000/, '');
     const somme = parseFloat(montant);
 
-    // Vérification des données
-    if (!senderId || !receiverId || somme <= 0 || isNaN(somme)) {
-        return res.status(400).json({ success: false, message: "Données invalides" });
-    }
+    // ÉTAPE 1 : Débiter l'expéditeur (Table: utilisateurs)
+    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, cleanSenderId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur débit" });
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "ID expéditeur introuvable en base" });
+        }
 
-    db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur système" });
-
-        // A. Vérifier le solde de l'expéditeur
-        db.query("SELECT solde FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
-            if (err || results.length === 0 || results[0].solde < somme) {
-                return db.rollback(() => res.status(400).json({ success: false, message: "Solde insuffisant" }));
-            }
-
-            // B. Calcul des frais (0,5%)
-            const montantFrais = somme * 0.005; // 0.5%
-            const montantNet = somme - montantFrais;
-
-            // C. DÉBITER l'expéditeur (Somme totale)
-            db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
-                if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur débit" }));
-
-                // D. CRÉDITER le destinataire (Montant net)
-                db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montantNet, receiverId], (err) => {
-                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur crédit" }));
-
-                    // E. CRÉDITER le compte des frais
-                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE email = 'pourcent@lean.com'", [montantFrais], (err) => {
-                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur frais" }));
-
-                        db.commit((err) => {
-                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Erreur commit" }));
-                            
-                            console.log(`Transfert réussi: -${somme} pour ${senderId}`);
-                            res.json({ success: true, message: "Transfert effectué avec succès !" });
-                        });
-                    });
-                });
-            });
-        });
+        // Suite du code (Crédit destinataire et frais)...
     });
 });
+
 
 
 
