@@ -108,44 +108,46 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-// ROUTE DE TRANSFERT (server.js)
+// ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    console.log(`Transfert : De ${senderId} vers ${receiverId} | Somme: ${somme} XOF`);
+    console.log(`Requête: De ${senderId} vers ${receiverId} | Montant: ${somme}`);
 
-    // ÉTAPE 1 : Débiter l'expéditeur
+    if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
+        return res.status(400).json({ success: false, message: "Données invalides" });
+    }
+
+    // 1. DÉBIT DE L'EXPÉDITEUR
     const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
             console.error("Erreur SQL Débit:", err.sqlMessage);
-            return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
+            return res.status(500).json({ success: false, message: "Erreur lors du débit" });
         }
 
         if (result.affectedRows === 0) {
-            // Si l'ID 0800029 n'est pas trouvé dans la colonne 'id'
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // ÉTAPE 2 : Créditer le destinataire
+        // 2. CRÉDIT DU DESTINATAIRE
         const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
         db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
                 console.error("Erreur SQL Crédit:", err.sqlMessage);
-                return res.status(500).json({ success: false, message: "Erreur base de données (Crédit)" });
+                return res.status(500).json({ success: false, message: "Erreur lors du crédit" });
             }
 
             if (resultCredit.affectedRows === 0) {
                 return res.status(404).json({ success: false, message: "Destinataire introuvable" });
             }
 
-            // ÉTAPE 3 : Succès
-            res.json({ success: true, message: "Transfert effectué avec succès !" });
+            // SUCCÈS
+            res.json({ success: true, message: `Transfert de ${somme} XOF réussi !` });
         });
     });
 });
-
 
 
 handleDisconnect();
