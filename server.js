@@ -110,27 +110,32 @@ const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (server.js)
 app.post('/api/transfert', (req, res) => {
+    // Récupération des données envoyées par le téléphone
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    // Debug : affiche les données reçues dans Termux
-    console.log(`Tentative de transfert : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
+    // Affichage dans Termux pour le suivi
+    console.log(`Requête reçue : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
 
+    // Vérification de base
     if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Données de transfert invalides" });
+        return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
     // ÉTAPE 1 : Débiter l'expéditeur
-    // IMPORTANT : Vérifiez que 'solde' et 'numero' sont les bons noms de colonnes dans votre SQL
+    // Assurez-vous que 'solde' et 'numero' sont les noms exacts dans votre table 'utilisateurs'
     const sqlDebit = "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?";
     
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
-            console.error("ERREUR SQL DEBIT :", err.sqlMessage || err); // Affiche la cause réelle dans Termux
+            // Affiche l'erreur réelle de MySQL dans Termux pour vous aider
+            console.error("ERREUR SQL DEBIT :", err.sqlMessage || err);
             return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
         }
 
+        // Si aucune ligne n'est modifiée, c'est que le numéro de l'expéditeur n'existe pas
         if (result.affectedRows === 0) {
+            console.log(`Échec : L'expéditeur ${senderId} n'existe pas.`);
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
@@ -144,19 +149,21 @@ app.post('/api/transfert', (req, res) => {
             }
 
             if (resultCredit.affectedRows === 0) {
-                // Optionnel : Ici vous devriez normalement annuler le débit précédent (Rollback)
+                // Si le destinataire n'existe pas, il faudrait normalement rembourser l'expéditeur ici
+                console.log(`Échec : Le destinataire ${receiverId} n'existe pas.`);
                 return res.status(404).json({ success: false, message: "Destinataire introuvable" });
             }
 
-            // ÉTAPE 3 : Confirmation
-            console.log("Transfert réussi !");
+            // ÉTAPE 3 : Succès total
+            console.log("Transfert réussi avec succès !");
             res.json({ 
                 success: true, 
-                message: `Transfert de ${somme} XOF réussi vers ${receiverId}` 
+                message: `Transfert de ${somme} XOF effectué vers ${receiverId}` 
             });
         });
     });
 });
+
 
 
 
