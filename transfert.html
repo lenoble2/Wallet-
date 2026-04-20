@@ -3,56 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean Transfert</title>
+    <title>Lean Wallet Transfert</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #msg { margin-top: 15px; text-align: center; font-weight: bold; color: #555; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        h2 { color: #2c3e50; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #status { margin-top: 15px; text-align: center; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>Lean Wallet</h2>
+<div class="container">
+    <h2>Nouveau Transfert</h2>
     <input type="text" id="dest" placeholder="ID Destinataire (ex: 0800029)">
-    <input type="number" id="montant" placeholder="Montant en XOF">
-    <button onclick="faireTransfert()">Envoyer l'argent</button>
-    <div id="msg">Prêt</div>
+    <input type="number" id="montant" placeholder="Montant (XOF)">
+    <button onclick="envoyer()">Confirmer l'envoi</button>
+    <div id="status">En attente...</div>
 </div>
 
 <script>
-    async function faireTransfert() {
-        const msg = document.getElementById('msg');
+    async function envoyer() {
+        const status = document.getElementById('status');
         const dest = document.getElementById('dest').value;
         const mt = document.getElementById('montant').value;
         
-        // On récupère le numéro de l'expéditeur (ex: 08000)
-        const exp = localStorage.getItem('userId'); 
+        // RECUPERATION DE L'EXPEDITEUR
+        // Assure-toi que lors de la connexion, tu as fait :
+        // localStorage.setItem('userId', '08000');
+        const exp = localStorage.getItem('userId');
 
-        if (!exp) return alert("Identifiez-vous d'abord");
-        if (!dest || !mt) return alert("Remplissez tous les champs");
+        if (!exp) return alert("Erreur : Connectez-vous d'abord.");
+        if (!dest || !mt) return alert("Remplissez les champs.");
 
-        msg.innerText = "⏳ Envoi en cours...";
-        
+        status.innerText = "⏳ Connexion au serveur...";
+        status.style.color = "blue";
+
         try {
-            const res = await fetch('https://lean3.onrender.com/api/transfert', {
+            const response = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ senderId: exp, receiverId: dest, montant: mt })
             });
-            const data = await res.json();
+            const res = await response.json();
+
+            status.innerText = res.message;
+            status.style.color = res.success ? "green" : "red";
+            if(res.success) alert("Transaction réussie !");
             
-            msg.innerText = data.message;
-            msg.style.color = data.success ? "green" : "red";
-            if(data.success) alert("Transfert réussi !");
         } catch (e) {
-            msg.innerText = "❌ Erreur de connexion au serveur";
+            status.innerText = "❌ Erreur : Serveur injoignable";
+            status.style.color = "red";
         }
     }
 </script>
 
 </body>
-</html>
+</html>2

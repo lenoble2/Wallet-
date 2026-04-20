@@ -117,29 +117,29 @@ app.post('/api/transfert', (req, res) => {
         return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
-    // 1. Vérifier si l'expéditeur existe et a assez d'argent
+    // 1. Vérifier si l'expéditeur a assez d'argent
     db.query("SELECT solde FROM comptes WHERE id = ?", [senderId], (err, rows) => {
         if (err || rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
+            return res.status(404).json({ success: false, message: "Expéditeur non trouvé" });
         }
 
         if (rows[0].solde < somme) {
-            return res.status(400).json({ success: false, message: "Solde insuffisant" });
+            return res.status(400).json({ success: false, message: "Solde insuffisant !" });
         }
 
         // 2. Débiter l'expéditeur
         db.query("UPDATE comptes SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
-            if (err) return res.status(500).json({ success: false, message: "Erreur lors du débit" });
+            if (err) return res.status(500).json({ success: false, message: "Erreur débit" });
 
             // 3. Créditer le destinataire
             db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, result) => {
                 if (err || result.affectedRows === 0) {
-                    // Rembourser l'expéditeur si le destinataire n'existe pas
+                    // Remboursement si le destinataire n'existe pas
                     db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, senderId]);
                     return res.status(404).json({ success: false, message: "Destinataire introuvable" });
                 }
 
-                res.json({ success: true, message: `Transfert de ${somme} XOF réussi !` });
+                res.json({ success: true, message: `Succès ! ${somme} XOF envoyés.` });
             });
         });
     });
