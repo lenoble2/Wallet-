@@ -34,11 +34,12 @@
 </div>
 
 <script>
-    function majCalcul() {
-        const val = document.getElementById('montantInput').value;
-        const mnt = parseFloat(val) || 0;
-        const f = mnt * 0.005;
 
+    function majCalcul() {
+
+const val = document.getElementById('montantInput').value;
+const mnt = parseFloat(val) || 0;
+        const f = mnt * 0.005;
         document.getElementById('fraisLabel').innerText = Math.floor(f);
         document.getElementById('totalLabel').innerText = Math.floor(mnt);
     }
@@ -55,7 +56,7 @@
         const payload = { destinataireID, montant, expediteurId: "session_user" };
 
         try {
-            const resp = await fetch('/api/transfert', {
+const resp = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
