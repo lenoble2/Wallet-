@@ -124,7 +124,7 @@ app.post('/api/transfert', (req, res) => {
 
     // ÉTAPE 1 : Débiter l'expéditeur
     // Assurez-vous que 'solde' et 'numero' sont les noms exacts dans votre table 'utilisateurs'
-    const sqlDebit = "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?";
+const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
     
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
@@ -140,8 +140,8 @@ app.post('/api/transfert', (req, res) => {
         }
 
         // ÉTAPE 2 : Créditer le destinataire
-        const sqlCredit = "UPDATE utilisateurs SET solde = solde + ? WHERE numero = ?";
-        
+const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
+
         db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
                 console.error("ERREUR SQL CREDIT :", err.sqlMessage || err);
