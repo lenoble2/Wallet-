@@ -113,38 +113,34 @@ app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    console.log(`Requête: De ${senderId} vers ${receiverId} | Montant: ${somme}`);
-
-    if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
+    if (!senderId || !receiverId || somme <= 0) {
         return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
-    // 1. DÉBIT DE L'EXPÉDITEUR
-    const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
-    db.query(sqlDebit, [somme, senderId], (err, result) => {
-        if (err) {
-            console.error("Erreur SQL Débit:", err.sqlMessage);
-            return res.status(500).json({ success: false, message: "Erreur lors du débit" });
-        }
-
-        if (result.affectedRows === 0) {
+    // 1. Vérifier si l'expéditeur existe et a assez d'argent
+    db.query("SELECT solde FROM comptes WHERE id = ?", [senderId], (err, rows) => {
+        if (err || rows.length === 0) {
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // 2. CRÉDIT DU DESTINATAIRE
-        const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
-        db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
-            if (err) {
-                console.error("Erreur SQL Crédit:", err.sqlMessage);
-                return res.status(500).json({ success: false, message: "Erreur lors du crédit" });
-            }
+        if (rows[0].solde < somme) {
+            return res.status(400).json({ success: false, message: "Solde insuffisant" });
+        }
 
-            if (resultCredit.affectedRows === 0) {
-                return res.status(404).json({ success: false, message: "Destinataire introuvable" });
-            }
+        // 2. Débiter l'expéditeur
+        db.query("UPDATE comptes SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
+            if (err) return res.status(500).json({ success: false, message: "Erreur lors du débit" });
 
-            // SUCCÈS
-            res.json({ success: true, message: `Transfert de ${somme} XOF réussi !` });
+            // 3. Créditer le destinataire
+            db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, result) => {
+                if (err || result.affectedRows === 0) {
+                    // Rembourser l'expéditeur si le destinataire n'existe pas
+                    db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, senderId]);
+                    return res.status(404).json({ success: false, message: "Destinataire introuvable" });
+                }
+
+                res.json({ success: true, message: `Transfert de ${somme} XOF réussi !` });
+            });
         });
     });
 });

@@ -3,76 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean Wallet - Transfert</title>
+    <title>Lean Transfert</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #eef2f3; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        h2 { color: #333; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:active { background-color: #1e7e34; transform: scale(0.98); }
-        #status { margin-top: 15px; text-align: center; font-weight: bold; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #msg { margin-top: 15px; text-align: center; font-weight: bold; color: #555; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Effectuer un Transfert</h2>
-    
-    <label>Destinataire (ID/Numéro) :</label>
-    <input type="text" id="destinataire" placeholder="Ex: 0800029">
-
-    <label>Montant (XOF) :</label>
-    <input type="number" id="montant" placeholder="Ex: 5000">
-
-    <button onclick="validerTransfert()">Envoyer l'argent</button>
-    
-    <div id="status">Prêt</div>
+<div class="box">
+    <h2>Lean Wallet</h2>
+    <input type="text" id="dest" placeholder="ID Destinataire (ex: 0800029)">
+    <input type="number" id="montant" placeholder="Montant en XOF">
+    <button onclick="faireTransfert()">Envoyer l'argent</button>
+    <div id="msg">Prêt</div>
 </div>
 
 <script>
-    async function validerTransfert() {
-        const statusDiv = document.getElementById('status');
-        const receiverId = document.getElementById('destinataire').value;
-        const montant = document.getElementById('montant').value;
+    async function faireTransfert() {
+        const msg = document.getElementById('msg');
+        const dest = document.getElementById('dest').value;
+        const mt = document.getElementById('montant').value;
         
-        // On récupère l'ID (le numéro) stocké au login
-        const senderId = localStorage.getItem('userId'); 
+        // On récupère le numéro de l'expéditeur (ex: 08000)
+        const exp = localStorage.getItem('userId'); 
 
-        if (!senderId) {
-            alert("Erreur : Vous n'êtes pas identifié. Reconnectez-vous.");
-            return;
-        }
+        if (!exp) return alert("Identifiez-vous d'abord");
+        if (!dest || !mt) return alert("Remplissez tous les champs");
 
-        if (!receiverId || !montant) {
-            alert("Veuillez remplir tous les champs.");
-            return;
-        }
-
-        statusDiv.innerText = "Transaction en cours...";
-        statusDiv.style.color = "blue";
-
+        msg.innerText = "⏳ Envoi en cours...";
+        
         try {
-            const response = await fetch('https://lean3.onrender.com/api/transfert', {
+            const res = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ senderId, receiverId, montant })
+                body: JSON.stringify({ senderId: exp, receiverId: dest, montant: mt })
             });
-
-            const data = await response.json();
-
-            if (data.success) {
-                alert("SUCCÈS : " + data.message);
-                statusDiv.innerText = "Transfert réussi !";
-                statusDiv.style.color = "green";
-            } else {
-                alert("ÉCHEC : " + data.message);
-                statusDiv.innerText = "Erreur : " + data.message;
-                statusDiv.style.color = "red";
-            }
-        } catch (error) {
-            alert("Erreur réseau : Impossible de joindre le serveur.");
-            statusDiv.innerText = "Erreur de connexion.";
+            const data = await res.json();
+            
+            msg.innerText = data.message;
+            msg.style.color = data.success ? "green" : "red";
+            if(data.success) alert("Transfert réussi !");
+        } catch (e) {
+            msg.innerText = "❌ Erreur de connexion au serveur";
         }
     }
 </script>
