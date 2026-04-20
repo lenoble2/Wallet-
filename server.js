@@ -109,42 +109,40 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
-app.post('/api/transfert', (req, res) => {
-    const { senderId, receiverId, montant } = req.body;
-    const mnt = parseFloat(montant);
+// Route de transfert
+app.post('/api/transfert', async (req, res) => {
+    const { senderId, receiverId, amount, pin } = req.body;
 
-    // 1. Validation du montant
-    if (isNaN(mnt) || mnt <= 0) {
-        return res.status(400).json({ success: false, message: 'Montant invalide' });
-    }
-
-    // 2. Vérifier si le destinataire existe dans la table 'comptes'
-    db.query('SELECT id FROM comptes WHERE id = ?', [receiverId], (err, results) => {
-        if (err || !results || results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Destinataire introuvable' });
-        }
+    try {
+        // 1. Vérifier l'expéditeur et son PIN
+        const [sender] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [senderId]);
         
-        const dest_id = results[0].id;
+        if (sender.length === 0 || sender[0].pin !== pin) {
+            return res.status(401).json({ error: "PIN incorrect ou expéditeur introuvable" });
+        }
 
-        // 3. DÉBIT : On retire l'argent SEULEMENT si le solde est suffisant (solde >= mnt)
-        const sqlDebit = 'UPDATE comptes SET solde = solde - ? WHERE id = ? AND solde >= ?';
-        db.query(sqlDebit, [mnt, senderId, mnt], (err, result) => {
-            if (err || result.affectedRows === 0) {
-                return res.status(400).json({ success: false, message: 'Solde insuffisant ou expéditeur inconnu' });
-            }
+        if (sender[0].solde < amount) {
+            return res.status(400).json({ error: "Solde insuffisant" });
+        }
 
-            // 4. CRÉDIT : On ajoute l'argent au destinataire
-            db.query('UPDATE comptes SET solde = solde + ? WHERE id = ?', [mnt, dest_id], (err) => {
-                if (err) {
-                    // En cas d'erreur ici, il faudrait normalement rembourser l'expéditeur
-                    return res.status(500).json({ success: false, message: 'Erreur lors du crédit' });
-                }
-                
-                console.log(`Succès : ${mnt} XOF transférés de ${senderId} à ${dest_id}`);
-                res.json({ success: true, message: 'Transfert réussi !' });
-            });
-        });
-    });
+        // 2. Vérifier si le destinataire existe
+        const [receiver] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [receiverId]);
+        if (receiver.length === 0) {
+            return res.status(404).json({ error: "Destinataire introuvable" });
+        }
+
+        // 3. Procéder au transfert (Transaction)
+        // Soustraire de l'expéditeur
+        await db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [amount, senderId]);
+        // Ajouter au destinataire
+        await db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [amount, receiverId]);
+
+        res.json({ message: Transfert de ${amount} XOF réussi vers ${receiver[0].nom} ! });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erreur lors de la transaction" });
+    }
 });
 
 
