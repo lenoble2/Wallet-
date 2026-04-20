@@ -110,55 +110,45 @@ const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (server.js)
 app.post('/api/transfert', (req, res) => {
-    // Récupération des données envoyées par le téléphone
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    // Affichage dans Termux pour le suivi
-    console.log(`Requête reçue : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
+    console.log(`Tentative : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
 
-    // Vérification de base
     if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
         return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
-    // ÉTAPE 1 : Débiter l'expéditeur
-    // Assurez-vous que 'solde' et 'numero' sont les noms exacts dans votre table 'utilisateurs'
-const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
+    // 1. DÉBIT (On utilise 'comptes' et 'id' comme sur ta photo)
+    const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
     
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
-            // Affiche l'erreur réelle de MySQL dans Termux pour vous aider
-            console.error("ERREUR SQL DEBIT :", err.sqlMessage || err);
+            console.error("ERREUR SQL DEBIT :", err.sqlMessage);
             return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
         }
 
-        // Si aucune ligne n'est modifiée, c'est que le numéro de l'expéditeur n'existe pas
         if (result.affectedRows === 0) {
-            console.log(`Échec : L'expéditeur ${senderId} n'existe pas.`);
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // ÉTAPE 2 : Créditer le destinataire
-const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
-
+        // 2. CRÉDIT
+        const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
+        
         db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
-                console.error("ERREUR SQL CREDIT :", err.sqlMessage || err);
+                console.error("ERREUR SQL CREDIT :", err.sqlMessage);
                 return res.status(500).json({ success: false, message: "Erreur base de données (Crédit)" });
             }
 
             if (resultCredit.affectedRows === 0) {
-                // Si le destinataire n'existe pas, il faudrait normalement rembourser l'expéditeur ici
-                console.log(`Échec : Le destinataire ${receiverId} n'existe pas.`);
                 return res.status(404).json({ success: false, message: "Destinataire introuvable" });
             }
 
-            // ÉTAPE 3 : Succès total
-            console.log("Transfert réussi avec succès !");
+            // 3. SUCCÈS
             res.json({ 
                 success: true, 
-                message: `Transfert de ${somme} XOF effectué vers ${receiverId}` 
+                message: `Transfert de ${somme} XOF réussi vers ${receiverId}` 
             });
         });
     });
