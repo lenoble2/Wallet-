@@ -5,76 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transfert Lean</title>
     <style>
-        body { margin: 0; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f7f6; }
-        .box { width: 90%; max-width: 400px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; margin-bottom: 20px; }
+        body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; padding: 20px; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; }
         label { display: block; margin-top: 15px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        .res { background: #eef2ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #007bff; }
-        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #004080; color: white; border: none; border-radius: 5px; margin-top: 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #003366; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <h2>Transfert de Fonds</h2>
-    
+
     <label>ID Destinataire :</label>
     <input type="text" id="destId" placeholder="0800029">
 
     <label>Montant (XOF) :</label>
-    <input type="number" id="montantInput" placeholder="Ex: 10000" oninput="majCalcul()">
-
-    <div class="res">
-        Frais (0.5%) : <span id="fraisLabel">0</span> XOF<br>
-        <strong>Total : <span id="totalLabel">0</span> XOF</strong>
-    </div>
+    <input type="number" id="montantInput" placeholder="Ex: 5000">
 
     <button onclick="valider()">Confirmer le transfert</button>
 </div>
 
 <script>
-
-    function majCalcul() {
-
-const val = document.getElementById('montantInput').value;
-const mnt = parseFloat(val) || 0;
-        const f = mnt * 0.005;
-        document.getElementById('fraisLabel').innerText = Math.floor(f);
-        document.getElementById('totalLabel').innerText = Math.floor(mnt);
-    }
-
     async function valider() {
         const destinataireID = document.getElementById('destId').value;
         const montant = parseFloat(document.getElementById('montantInput').value);
+        
+        // Remplacez 'SENDER_ID_ICI' par l'ID de l'utilisateur connecté (ex: récupéré du localStorage)
+        const expediteurID = "0800001"; 
 
-        if (!destinataireID.startsWith("08000") || !montant || montant <= 0) {
-            alert("Veuillez remplir correctement l'ID et le montant.");
+        if (!destinataireID  isNaN(montant)  montant <= 0) {
+            alert("Veuillez remplir correctement les champs.");
             return;
         }
 
-        const payload = { destinataireID, montant, expediteurId: "session_user" };
+        const payload = {
+            senderId: expediteurID,
+            receiverId: destinataireID,
+            montant: montant
+        };
 
         try {
-const resp = await fetch('https://lean3.onrender.com/api/transfert', {
+            // URL COMPLÈTE DE RENDER
+            const resp = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             const res = await resp.json();
+
             if (res.success) {
                 alert("Transfert réussi !");
                 location.reload();
             } else {
-                alert("Erreur : " + res.error);
+                alert("Erreur : " + res.message);
             }
         } catch (err) {
-            alert("Le serveur ne répond pas.");
+            console.error(err);
+            alert("Le serveur ne répond pas. Vérifiez votre connexion ou les logs Render.");
         }
     }
 </script>
 
 </body>
 </html>
-

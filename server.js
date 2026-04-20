@@ -108,36 +108,29 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
+// ROUTE DE TRANSFERT
 app.post('/api/transfert', (req, res) => {
-    let { senderId, receiverId, montant } = req.body;
-
-    // Nettoyage des IDs : si l'ID est "080001", on garde juste "1"
-    const cleanSenderId = senderId.toString().replace(/^08000/, '');
-    const cleanReceiverId = receiverId.toString().replace(/^08000/, '');
+    const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    // ÉTAPE 1 : Débiter l'expéditeur (Table: utilisateurs)
-db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, cleanSenderId], (err, result) => {
-    if (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, error: "Erreur lors du débit" });
-    }
-    
-    if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: "Expéditeur non trouvé" });
+    if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
+        return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
-    // ÉTAPE 2 : Créditer le destinataire
-    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, cleanReceiverId], (err2, result2) => {
-        if (err2) {
-            return res.status(500).json({ success: false, error: "Erreur lors du crédit" });
-        }
-        
-        // IMPORTANT : Envoyer la réponse finale ici !
-        return res.json({ success: true, message: "Transfert réussi" });
+    // Débit de l'expéditeur
+    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
+
+        // Crédit du destinataire
+        db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err2, result2) => {
+            if (err2) return res.status(500).json({ success: false, error: err2.message });
+            
+            return res.json({ success: true, message: "Transfert réussi !" });
+        });
     });
 });
-});
+
 
 handleDisconnect();
 const PORT = process.env.PORT || 10000;
