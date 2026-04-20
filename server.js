@@ -108,23 +108,25 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-// ROUTE DE TRANSFERT COMPLETE
+// ROUTE DE TRANSFERT (server.js)
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    // Debug pour voir ce qui arrive dans Termux
-    console.log(`Transfert de ${senderId} vers ${receiverId} | Montant: ${somme}`);
+    // Debug : affiche les données reçues dans Termux
+    console.log(`Tentative de transfert : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
 
     if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Données invalides ou manquantes" });
+        return res.status(400).json({ success: false, message: "Données de transfert invalides" });
     }
 
-    // 1. DÉBIT DE L'EXPÉDITEUR
+    // ÉTAPE 1 : Débiter l'expéditeur
+    // IMPORTANT : Vérifiez que 'solde' et 'numero' sont les bons noms de colonnes dans votre SQL
     const sqlDebit = "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?";
+    
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
-            console.error("Erreur SQL Débit:", err.sqlMessage);
+            console.error("ERREUR SQL DEBIT :", err.sqlMessage || err); // Affiche la cause réelle dans Termux
             return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
         }
 
@@ -132,21 +134,22 @@ app.post('/api/transfert', (req, res) => {
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // 2. CRÉDIT DU DESTINATAIRE (Si le débit a réussi)
+        // ÉTAPE 2 : Créditer le destinataire
         const sqlCredit = "UPDATE utilisateurs SET solde = solde + ? WHERE numero = ?";
+        
         db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
-                console.error("Erreur SQL Crédit:", err.sqlMessage);
-                // Note: En production, il faudrait ici annuler le débit (rollback)
+                console.error("ERREUR SQL CREDIT :", err.sqlMessage || err);
                 return res.status(500).json({ success: false, message: "Erreur base de données (Crédit)" });
             }
 
             if (resultCredit.affectedRows === 0) {
-                // Si le destinataire n'existe pas, on pourrait rembourser l'expéditeur ici
+                // Optionnel : Ici vous devriez normalement annuler le débit précédent (Rollback)
                 return res.status(404).json({ success: false, message: "Destinataire introuvable" });
             }
 
-            // 3. RÉPONSE FINALE
+            // ÉTAPE 3 : Confirmation
+            console.log("Transfert réussi !");
             res.json({ 
                 success: true, 
                 message: `Transfert de ${somme} XOF réussi vers ${receiverId}` 
