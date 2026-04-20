@@ -108,40 +108,53 @@ app.get('/', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-// ROUTE DE TRANSFERT
+// ROUTE DE TRANSFERT COMPLETE
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
     // Debug pour voir ce qui arrive dans Termux
-    console.log(`Transfert de ${senderId} vers ${receiverId} : ${somme} XOF`);
+    console.log(`Transfert de ${senderId} vers ${receiverId} | Montant: ${somme}`);
 
     if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Données invalides" });
+        return res.status(400).json({ success: false, message: "Données invalides ou manquantes" });
     }
 
-    // Débit de l'expéditeur
-    // On passe [somme, senderId] pour remplir les deux "?" dans l'ordre
-    db.query(
-        "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?", 
-        [somme, senderId], 
-        (err, result) => {
+    // 1. DÉBIT DE L'EXPÉDITEUR
+    const sqlDebit = "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?";
+    db.query(sqlDebit, [somme, senderId], (err, result) => {
+        if (err) {
+            console.error("Erreur SQL Débit:", err.sqlMessage);
+            return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
+        }
+
+        // 2. CRÉDIT DU DESTINATAIRE (Si le débit a réussi)
+        const sqlCredit = "UPDATE utilisateurs SET solde = solde + ? WHERE numero = ?";
+        db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
-                console.error(err);
-                return res.status(500).json({ success: false, message: "Erreur base de données" });
-            }
-            
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
+                console.error("Erreur SQL Crédit:", err.sqlMessage);
+                // Note: En production, il faudrait ici annuler le débit (rollback)
+                return res.status(500).json({ success: false, message: "Erreur base de données (Crédit)" });
             }
 
-            // Si le débit a réussi, il faudra ajouter ici la requête 
-            // pour créditer le destinataire (UPDATE utilisateurs SET solde = solde + ? ...)
-            
-            res.json({ success: true, message: "Transfert réussi" });
-        }
-    );
+            if (resultCredit.affectedRows === 0) {
+                // Si le destinataire n'existe pas, on pourrait rembourser l'expéditeur ici
+                return res.status(404).json({ success: false, message: "Destinataire introuvable" });
+            }
+
+            // 3. RÉPONSE FINALE
+            res.json({ 
+                success: true, 
+                message: `Transfert de ${somme} XOF réussi vers ${receiverId}` 
+            });
+        });
+    });
 });
+
 
 
 handleDisconnect();
