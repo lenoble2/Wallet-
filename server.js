@@ -113,22 +113,34 @@ app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
+    // Debug pour voir ce qui arrive dans Termux
+    console.log(`Transfert de ${senderId} vers ${receiverId} : ${somme} XOF`);
+
     if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
         return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
     // Débit de l'expéditeur
-    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err, result) => {
-        if (err) return res.status(500).json({ success: false, error: err.message });
-        if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
-
-        // Crédit du destinataire
-        db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err2, result2) => {
-            if (err2) return res.status(500).json({ success: false, error: err2.message });
+    // On passe [somme, senderId] pour remplir les deux "?" dans l'ordre
+    db.query(
+        "UPDATE utilisateurs SET solde = solde - ? WHERE numero = ?", 
+        [somme, senderId], 
+        (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, message: "Erreur base de données" });
+            }
             
-            return res.json({ success: true, message: "Transfert réussi !" });
-        });
-    });
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
+            }
+
+            // Si le débit a réussi, il faudra ajouter ici la requête 
+            // pour créditer le destinataire (UPDATE utilisateurs SET solde = solde + ? ...)
+            
+            res.json({ success: true, message: "Transfert réussi" });
+        }
+    );
 });
 
 

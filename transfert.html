@@ -28,35 +28,36 @@
     <button onclick="valider()">Confirmer le transfert</button>
 </div>
 <script>
-    function valider() {
-        // TEST 1 : Vérifier si la fonction se lance
-        alert("Bouton cliqué !"); 
+// Remplace ton ancienne fonction de transfert par celle-ci
+const effectuerTransfert = () => {
+    const receiverId = document.getElementById('destinataire').value;
+    const montant = document.getElementById('montant').value;
+    
+    // RÉCUPÉRATION DE L'EXPÉDITEUR
+    // Assure-toi que 'userId' est le nom utilisé lors de la connexion
+    const senderId = localStorage.getItem('userId'); 
 
-        const destId = document.getElementById('destId').value;
-        const montant = document.getElementById('montantInput').value;
-
-        // TEST 2 : Voir les données capturées
-        alert("Données : Dest=" + destId + " Montant=" + montant);
-
-        const payload = {
-            senderId: "0800001", // ID test
-            receiverId: destId,
-            montant: parseFloat(montant)
-        };
-
-        fetch('https://lean3.onrender.com/api/transfert', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Réponse du serveur : " + JSON.stringify(data));
-        })
-        .catch(error => {
-            alert("Erreur réseau : " + error);
-        });
+    if (!senderId) {
+        alert("Erreur : Vous n'êtes pas connecté.");
+        return;
     }
+
+    fetch('https://lean3.onrender.com/api/transfert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            senderId: senderId,    // On envoie l'ID de l'expéditeur
+            receiverId: receiverId,
+            montant: montant
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert("Réponse du serveur : " + JSON.stringify(data));
+    })
+    .catch(err => console.error("Erreur:", err));
+};
+
 </script>
 
 </body>
