@@ -30,45 +30,66 @@
 
 <script>
     async function valider() {
-        const destinataireID = document.getElementById('destId').value;
-        const montant = parseFloat(document.getElementById('montantInput').value);
-        
-        // Remplacez 'SENDER_ID_ICI' par l'ID de l'utilisateur connecté (ex: récupéré du localStorage)
-        const expediteurID = "0800001"; 
-
-        if (!destinataireID  isNaN(montant)  montant <= 0) {
-            alert("Veuillez remplir correctement les champs.");
-            return;
-        }
-
-        const payload = {
-            senderId: expediteurID,
-            receiverId: destinataireID,
-            montant: montant
-        };
+        console.log("Bouton cliqué"); // Pour vérifier que la fonction se lance
 
         try {
-            // URL COMPLÈTE DE RENDER
+            // 1. Récupération des éléments
+            const destEl = document.getElementById('destId');
+            const montEl = document.getElementById('montantInput');
+
+            if (!destEl || !montEl) {
+                alert("Erreur : Éléments HTML introuvables");
+                return;
+            }
+
+            const destinataireID = destEl.value.trim();
+            const montant = parseFloat(montantEl.value);
+            
+            // ID de test (à remplacer par la logique de session plus tard)
+            const expediteurID = "0800001"; 
+
+            // 2. Validation simple
+            if (destinataireID === ""  isNaN(montant)  montant <= 0) {
+                alert("Veuillez entrer un ID valide et un montant supérieur à 0.");
+                return;
+            }
+
+            const payload = {
+                senderId: expediteurID,
+                receiverId: destinataireID,
+                montant: montant
+            };
+
+            console.log("Envoi du payload:", payload);
+
+            // 3. Envoi de la requête
             const resp = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(payload)
             });
 
+            // 4. Lecture de la réponse
             const res = await resp.json();
+            console.log("Réponse reçue:", res);
 
             if (res.success) {
-                alert("Transfert réussi !");
+                alert("✅ Transfert réussi !");
                 location.reload();
             } else {
-                alert("Erreur : " + res.message);
+                alert("❌ Erreur du serveur : " + (res.message || res.error));
             }
+
         } catch (err) {
-            console.error(err);
-            alert("Le serveur ne répond pas. Vérifiez votre connexion ou les logs Render.");
+            console.error("Erreur attrapée:", err);
+            alert("Le serveur est injoignable ou une erreur est survenue.");
         }
     }
 </script>
+
 
 </body>
 </html>
