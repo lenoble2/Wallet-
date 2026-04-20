@@ -109,6 +109,7 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (server.js)
+
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
@@ -153,7 +154,6 @@ app.post('/api/transfert', (req, res) => {
         });
     });
 });
-
 
 
 
