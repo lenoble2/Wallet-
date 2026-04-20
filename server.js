@@ -117,18 +117,26 @@ app.post('/api/transfert', (req, res) => {
     const somme = parseFloat(montant);
 
     // ÉTAPE 1 : Débiter l'expéditeur (Table: utilisateurs)
-    db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, cleanSenderId], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur débit" });
-        
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: "ID expéditeur introuvable en base" });
-        }
+db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, cleanSenderId], (err, result) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, error: "Erreur lors du débit" });
+    }
+    
+    if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Expéditeur non trouvé" });
+    }
 
-        // Suite du code (Crédit destinataire et frais)...
+    // ÉTAPE 2 : Créditer le destinataire
+    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, cleanReceiverId], (err2, result2) => {
+        if (err2) {
+            return res.status(500).json({ success: false, error: "Erreur lors du crédit" });
+        }
+        
+        // IMPORTANT : Envoyer la réponse finale ici !
+        return res.json({ success: true, message: "Transfert réussi" });
     });
 });
-
-
 
 
 handleDisconnect();
