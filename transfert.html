@@ -3,61 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean Wallet Transfert</title>
+    <title>Lean Wallet - Transfert Sécurisé</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h2 { color: #2c3e50; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #status { margin-top: 15px; text-align: center; font-size: 0.9em; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 380px; }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #1557b0; }
+        #message { margin-top: 20px; text-align: center; padding: 10px; border-radius: 5px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
     <h2>Nouveau Transfert</h2>
-    <input type="text" id="dest" placeholder="ID Destinataire (ex: 0800029)">
-    <input type="number" id="montant" placeholder="Montant (XOF)">
-    <button onclick="envoyer()">Confirmer l'envoi</button>
-    <div id="status">En attente...</div>
+    
+    <label for="dest">ID Destinataire :</label>
+    <input type="text" id="dest" placeholder="Entrez le numéro (ex: 0800029)">
+
+    <label for="montant">Montant (XOF) :</label>
+    <input type="number" id="montant" placeholder="Somme à envoyer">
+
+    <button onclick="executerTransfert()">Confirmer l'envoi</button>
+    
+    <div id="message"></div>
 </div>
 
 <script>
-    async function envoyer() {
-        const status = document.getElementById('status');
-        const dest = document.getElementById('dest').value;
+    async function executerTransfert() {
+        const msgDiv = document.getElementById('message');
+        const receiverId = document.getElementById('dest').value;
         const mt = document.getElementById('montant').value;
         
-        // RECUPERATION DE L'EXPEDITEUR
-        // Assure-toi que lors de la connexion, tu as fait :
-        // localStorage.setItem('userId', '08000');
-        const exp = localStorage.getItem('userId');
+        // On récupère l'ID de l'expéditeur (ex: 08000) depuis la session/login
+        const senderId = localStorage.getItem('userId'); 
 
-        if (!exp) return alert("Erreur : Connectez-vous d'abord.");
-        if (!dest || !mt) return alert("Remplissez les champs.");
+        if (!senderId) {
+            alert("Erreur : Session expirée. Reconnectez-vous.");
+            return;
+        }
 
-        status.innerText = "⏳ Connexion au serveur...";
-        status.style.color = "blue";
+        if (!receiverId || !mt) {
+            alert("Merci de remplir tous les champs.");
+            return;
+        }
+
+        // Préparation de l'affichage
+        msgDiv.style.display = "block";
+        msgDiv.innerText = "⏳ Traitement sécurisé en cours...";
+        msgDiv.style.background = "#e8f0fe";
+        msgDiv.style.color = "#1a73e8";
 
         try {
+            // ATTENTION : Les noms des clés doivent correspondre à ton server.js
             const response = await fetch('https://lean3.onrender.com/api/transfert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ senderId: exp, receiverId: dest, montant: mt })
+                body: JSON.stringify({ 
+                    senderId: senderId,     // envoyé comme expediteur_id dans ton exemple
+                    receiverId: receiverId, // envoyé comme email_destinataire
+                    montant: mt 
+                })
             });
-            const res = await response.json();
 
-            status.innerText = res.message;
-            status.style.color = res.success ? "green" : "red";
-            if(res.success) alert("Transaction réussie !");
-            
-        } catch (e) {
-            status.innerText = "❌ Erreur : Serveur injoignable";
-            status.style.color = "red";
+            const data = await response.json();
+
+            if (data.success) {
+                msgDiv.innerText = "✅ " + data.message;
+                msgDiv.style.background = "#e6fffa";
+                msgDiv.style.color = "#2d3748";
+                alert("Bravo ! Le transfert est validé.");
+            } else {
+                msgDiv.innerText = "❌ " + data.message;
+                msgDiv.style.background = "#fff5f5";
+                msgDiv.style.color = "#c53030";
+            }
+        } catch (error) {
+            msgDiv.innerText = "❌ Erreur de connexion au serveur.";
+            msgDiv.style.background = "#fff5f5";
+            msgDiv.style.color = "#c53030";
         }
     }
 </script>
 
 </body>
-</html>2
+</html>

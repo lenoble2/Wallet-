@@ -111,35 +111,37 @@ const FEE_PERCENTAGE = 0.005;
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
-    const somme = parseFloat(montant);
+    const mnt = parseFloat(montant);
 
-    if (!senderId || !receiverId || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Données invalides" });
+    // 1. Validation du montant
+    if (isNaN(mnt) || mnt <= 0) {
+        return res.status(400).json({ success: false, message: 'Montant invalide' });
     }
 
-    // 1. Vérifier si l'expéditeur a assez d'argent
-    db.query("SELECT solde FROM comptes WHERE id = ?", [senderId], (err, rows) => {
-        if (err || rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Expéditeur non trouvé" });
+    // 2. Vérifier si le destinataire existe dans la table 'comptes'
+    db.query('SELECT id FROM comptes WHERE id = ?', [receiverId], (err, results) => {
+        if (err || !results || results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Destinataire introuvable' });
         }
+        
+        const dest_id = results[0].id;
 
-        if (rows[0].solde < somme) {
-            return res.status(400).json({ success: false, message: "Solde insuffisant !" });
-        }
+        // 3. DÉBIT : On retire l'argent SEULEMENT si le solde est suffisant (solde >= mnt)
+        const sqlDebit = 'UPDATE comptes SET solde = solde - ? WHERE id = ? AND solde >= ?';
+        db.query(sqlDebit, [mnt, senderId, mnt], (err, result) => {
+            if (err || result.affectedRows === 0) {
+                return res.status(400).json({ success: false, message: 'Solde insuffisant ou expéditeur inconnu' });
+            }
 
-        // 2. Débiter l'expéditeur
-        db.query("UPDATE comptes SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
-            if (err) return res.status(500).json({ success: false, message: "Erreur débit" });
-
-            // 3. Créditer le destinataire
-            db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, result) => {
-                if (err || result.affectedRows === 0) {
-                    // Remboursement si le destinataire n'existe pas
-                    db.query("UPDATE comptes SET solde = solde + ? WHERE id = ?", [somme, senderId]);
-                    return res.status(404).json({ success: false, message: "Destinataire introuvable" });
+            // 4. CRÉDIT : On ajoute l'argent au destinataire
+            db.query('UPDATE comptes SET solde = solde + ? WHERE id = ?', [mnt, dest_id], (err) => {
+                if (err) {
+                    // En cas d'erreur ici, il faudrait normalement rembourser l'expéditeur
+                    return res.status(500).json({ success: false, message: 'Erreur lors du crédit' });
                 }
-
-                res.json({ success: true, message: `Succès ! ${somme} XOF envoyés.` });
+                
+                console.log(`Succès : ${mnt} XOF transférés de ${senderId} à ${dest_id}`);
+                res.json({ success: true, message: 'Transfert réussi !' });
             });
         });
     });
