@@ -28,35 +28,31 @@
     <button onclick="valider()">Confirmer le transfert</button>
 </div>
 <script>
-async function effectuerTransfert() {
-    // 1. On vérifie que la fonction se lance
-    alert("Début de la fonction transfert");
 
-    const receiverId = document.getElementById('destinataire').value;
-    const montant = document.getElementById('montant').value;
-    const senderId = localStorage.getItem('userId');
-
-    // 2. On vérifie les données récupérées
-    alert(`Infos : De ${senderId} vers ${receiverId} (Montant: ${montant})`);
-
-    if (!senderId) {
-        alert("Erreur : ID expéditeur manquant. Connectez-vous à nouveau.");
-        return;
-    }
+function effectuerTransfert() {
+    alert("Le bouton a bien été cliqué !"); // Si cette alerte ne s'affiche pas, le problème est l'appel du bouton.
 
     try {
-        const response = await fetch('https://lean3.onrender.com/api/transfert', {
+        const dest = document.getElementById('destinataire').value;
+        const mt = document.getElementById('montant').value;
+        const exp = localStorage.getItem('userId');
+
+        if (!exp) {
+            alert("Erreur : ID Expéditeur non trouvé. Reconnectez-vous.");
+            return;
+        }
+
+        fetch('https://lean3.onrender.com/api/transfert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senderId, receiverId, montant })
-        });
+            body: JSON.stringify({ senderId: exp, receiverId: dest, montant: mt })
+        })
+        .then(res => res.json())
+        .then(data => alert("Réponse : " + data.message))
+        .catch(err => alert("Erreur réseau : " + err));
 
-        const data = await response.json();
-        
-        // 3. On affiche la réponse du serveur
-        alert("Réponse serveur : " + data.message);
-    } catch (error) {
-        alert("Erreur de connexion : " + error.message);
+    } catch (e) {
+        alert("Erreur de code : " + e.message);
     }
 }
 
