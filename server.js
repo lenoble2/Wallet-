@@ -109,36 +109,30 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (server.js)
-
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant } = req.body;
     const somme = parseFloat(montant);
 
-    console.log(`Tentative : De ${senderId} vers ${receiverId} | Montant : ${somme}`);
+    console.log(`Transfert : De ${senderId} vers ${receiverId} | Somme: ${somme} XOF`);
 
-    if (!senderId || !receiverId || isNaN(somme) || somme <= 0) {
-        return res.status(400).json({ success: false, message: "Données invalides" });
-    }
-
-    // 1. DÉBIT (On utilise 'comptes' et 'id' comme sur ta photo)
+    // ÉTAPE 1 : Débiter l'expéditeur
     const sqlDebit = "UPDATE comptes SET solde = solde - ? WHERE id = ?";
-    
     db.query(sqlDebit, [somme, senderId], (err, result) => {
         if (err) {
-            console.error("ERREUR SQL DEBIT :", err.sqlMessage);
+            console.error("Erreur SQL Débit:", err.sqlMessage);
             return res.status(500).json({ success: false, message: "Erreur base de données (Débit)" });
         }
 
         if (result.affectedRows === 0) {
+            // Si l'ID 0800029 n'est pas trouvé dans la colonne 'id'
             return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // 2. CRÉDIT
+        // ÉTAPE 2 : Créditer le destinataire
         const sqlCredit = "UPDATE comptes SET solde = solde + ? WHERE id = ?";
-        
         db.query(sqlCredit, [somme, receiverId], (err, resultCredit) => {
             if (err) {
-                console.error("ERREUR SQL CREDIT :", err.sqlMessage);
+                console.error("Erreur SQL Crédit:", err.sqlMessage);
                 return res.status(500).json({ success: false, message: "Erreur base de données (Crédit)" });
             }
 
@@ -146,11 +140,8 @@ app.post('/api/transfert', (req, res) => {
                 return res.status(404).json({ success: false, message: "Destinataire introuvable" });
             }
 
-            // 3. SUCCÈS
-            res.json({ 
-                success: true, 
-                message: `Transfert de ${somme} XOF réussi vers ${receiverId}` 
-            });
+            // ÉTAPE 3 : Succès
+            res.json({ success: true, message: "Transfert effectué avec succès !" });
         });
     });
 });
