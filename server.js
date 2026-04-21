@@ -133,25 +133,21 @@ app.get('/test-db', (req, res) => {
     });
 });
 
+// Remplace tes anciens blocs de vérification par celui-ci (Route GET)
 app.get('/api/verif-destinataire/:id', (req, res) => {
-    // On enlève le "08000" pour ne garder que l'ID numérique (ex: 2)
+    // Nettoyage : on enlève "08000" pour ne garder que le chiffre (ex: 2)
     const idNettoye = req.params.id.replace("08000", "").trim();
 
     db.query("SELECT nom FROM utilisateurs WHERE id = ?", [idNettoye], (err, results) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: "Erreur base de données" });
-        }
+        if (err) return res.status(500).json({ success: false });
         
         if (results.length > 0) {
-            // Le destinataire existe
             res.json({ success: true, nom: results[0].nom });
         } else {
-            // Personne n'a été trouvé
-            res.json({ success: false, message: "Destinataire introuvable" });
+            res.json({ success: false, message: "Inconnu" });
         }
     });
 });
-
 
 // ROUTE DE TRANSFERT
     // On nettoie l'ID au cas où l'utilisateur a écrit 080002 au lieu de 2
