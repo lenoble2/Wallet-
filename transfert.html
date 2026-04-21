@@ -14,59 +14,43 @@
 <body>
     <div class="container">
         <h2>Effectuer un transfert</h2>
-        
-        <div id="status" class="feedback"></div>
 
-        <form id="formTransfert">
-            <input type="text" id="dest" placeholder="ID Destinataire (ex: 2)" required>
-            <input type="number" id="montant" placeholder="Montant en XOF" required>
-            <input type="password" id="monPin" placeholder="Votre PIN" required>
-            <button type="submit" id="btnValider">Confirmer l'envoi</button>
-        </form>
-    </div>
+<div id="status" style="display:none; padding:10px; margin:10px; border-radius:5px;"></div>
 
-    <script>
-        document.getElementById('formTransfert').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const statusDiv = document.getElementById('status');
-            const btn = document.getElementById('btnValider');
+<button id="btnConfirmer">Confirmer l'envoi</button>
 
-            // Étape 1 : Montrer que le clic est enregistré
-            statusDiv.innerText = "⏳ Envoi au serveur en cours...";
-            statusDiv.className = "feedback loading";
-            statusDiv.style.display = "block";
-            btn.disabled = true;
+<script>
+document.getElementById('btnConfirmer').onclick = async () => {
+    const status = document.getElementById('status');
+    
+    // 1. On montre que le clic fonctionne
+    status.style.display = "block";
+    status.style.backgroundColor = "#fff3cd"; // Orange
+    status.innerText = "⏳ Envoi au serveur en cours...";
 
-            const data = {
-                dest: document.getElementById('dest').value,
-                montant: document.getElementById('montant').value,
-                pin: document.getElementById('monPin').value
-            };
-
-            try {
-                const response = await fetch('/api/transfert', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-
-                // Étape 2 : Le serveur a répondu
-                const result = await response.json();
-                
-                if (result.success) {
-                    statusDiv.innerText = "✅ Message reçu ! Transfert validé par le serveur.";
-                    statusDiv.className = "feedback success";
-                } else {
-                    statusDiv.innerText = "❌ Serveur : " + result.message;
-                    statusDiv.className = "feedback error";
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                statusDiv.innerText = "❌ ÉCHEC : Le serveur est éteint ou injoignable.";
-                statusDiv.className = "feedback error";
-                btn.disabled = false;
-            }
+    try {
+        const response = await fetch('/api/transfert', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                dest: document.getElementById('receiverId').value,
+                montant: document.getElementById('amount').value,
+                pin: document.getElementById('pin').value
+            })
         });
-    </script>
+
+        const data = await response.json();
+
+        // 2. Le serveur a répondu !
+        if (data.success) {
+            status.style.backgroundColor = "#d4edda"; // Vert
+            status.innerText = "✅ Succès : " + data.message;
+        }
+    } catch (err) {
+        status.style.backgroundColor = "#f8d7da"; // Rouge
+        status.innerText = "❌ Le serveur est injoignable.";
+    }
+};
+</script>
 </body>
-</html>
+</html>	
