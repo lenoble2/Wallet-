@@ -29,28 +29,56 @@
     <label>Votre PIN :</label>
     <input type="password" id="senderPin" placeholder="****" maxlength="4" required>
 
-    <button onclick="effectuerTransfert()">Confirmer l'envoi</button>
-    
-    <div id="message" style="margin-top: 10px;"></div>
-</div>
-<button onclick="validerTransfert()">Confirmer l'envoi</button>
+<button type="button" id="btn-transferer" onclick="validerTransfert()">Confirmer l'envoi</button>
+<div id="resultat-message"></div>
 
 <script>
+<script>
 function validerTransfert() {
-    const receiverId = document.getElementById('id_destinataire').value; // Vérifie l'ID
-    const amount = document.getElementById('montant').value;
+    console.log("Tentative de transfert lancée...");
+    
+    // Récupération des valeurs avec les bons IDs
+    const idDestinataire = document.getElementById('id_destinataire').value;
+    const montant = document.getElementById('montant').value;
     const pin = document.getElementById('pin').value;
+    const messageDiv = document.getElementById('resultat-message');
 
-    console.log("Envoi des données...", { receiverId, amount, pin });
+    // Vérification simple pour voir si la fonction tourne
+    if (!idDestinataire  !montant  !pin) {
+        alert("Veuillez remplir tous les champs");
+        return;
+    }
+
+    // Affichage d'un état de chargement
+    messageDiv.innerHTML = "Traitement en cours...";
+    messageDiv.style.color = "blue";
 
     fetch('/api/transfert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderId: 1, receiverId, amount, pin })
+        body: JSON.stringify({
+            senderId: 1, // Ton ID (Len)
+            receiverId: idDestinataire,
+            amount: montant,
+            pin: pin
+        })
     })
-    .then(res => res.json())
-    .then(data => alert(data.message || data.error))
-    .catch(err => console.error("Erreur fetch:", err));
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("Succès : " + data.message);
+            messageDiv.innerHTML = data.message;
+            messageDiv.style.color = "green";
+        } else {
+            alert("Erreur : " + data.error);
+            messageDiv.innerHTML = data.error;
+            messageDiv.style.color = "red";
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert("Erreur de connexion au serveur");
+    });
 }
 </script>
 
