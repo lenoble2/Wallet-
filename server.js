@@ -110,43 +110,17 @@ const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
 app.post('/api/transfert', async (req, res) => {
-    const { senderId, receiverId, amount, pin } = req.body;
+    const { senderId, receiverId, amount, pin } = req.body; // Vérifie que ces noms arrivent du HTML
 
-    try {
-        // 1. Vérifier l'expéditeur et son PIN
-        // On cherche par ID (ex: 1)
-        const [sender] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [senderId]);
+    // CHANGE 'users' PAR 'utilisateurs' ICI
+    const query = "SELECT * FROM utilisateurs WHERE id = ?"; 
+    
+    db.query(query, [receiverId], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).json({ error: "Destinataire introuvable" });
         
-        if (sender.length === 0) {
-            return res.status(404).json({ error: "Expéditeur introuvable" });
-        }
-
-        if (sender[0].pin !== pin) {
-            return res.status(401).json({ error: "PIN de sécurité incorrect" });
-        }
-
-        if (parseFloat(sender[0].solde) < parseFloat(amount)) {
-            return res.status(400).json({ error: "Solde insuffisant pour ce transfert" });
-        }
-
-        // 2. Vérifier le destinataire
-        // Si tu saisis "080001", assure-toi que c'est bien l'ID dans ta table
-        const [receiver] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [receiverId]);
-        
-        if (receiver.length === 0) {
-            return res.status(404).json({ error: "Destinataire introuvable (ID inexistant)" });
-        }
-
-        // 3. Exécution du transfert (Transaction)
-        await db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [amount, senderId]);
-        await db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [amount, receiverId]);
-
-        res.json({ message: `Transfert réussi ! ${amount} XOF envoyés à ${receiver[0].nom}` });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erreur technique lors du transfert" });
-    }
+        // Logique de vérification du PIN et du solde...
+    });
 });
 
 

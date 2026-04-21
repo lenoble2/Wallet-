@@ -33,33 +33,26 @@
     
     <div id="message" style="margin-top: 10px;"></div>
 </div>
+<button onclick="validerTransfert()">Confirmer l'envoi</button>
 
 <script>
-async function effectuerTransfert() {
-alert("Bouton cliqué !"); // Ajoute ça pour tester
-    const receiverId = document.getElementById('receiverId').value;
-    const amount = document.getElementById('amount').value;
-    const pin = document.getElementById('senderPin').value;
-    const messageDiv = document.getElementById('message');
+function validerTransfert() {
+    const receiverId = document.getElementById('id_destinataire').value; // Vérifie l'ID
+    const amount = document.getElementById('montant').value;
+    const pin = document.getElementById('pin').value;
 
-    const response = await fetch('/api/transfert', {
+    console.log("Envoi des données...", { receiverId, amount, pin });
+
+    fetch('/api/transfert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            senderId: 1, // Fixé à 1 (Len) pour tes tests
-            receiverId: receiverId, 
-            amount: amount,
-            pin: pin 
-        })
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-        messageDiv.innerHTML = <span style="color:green">${result.message}</span>;
-    } else {
-        messageDiv.innerHTML = <span style="color:red">${result.error}</span>;
-    }
+        body: JSON.stringify({ senderId: 1, receiverId, amount, pin })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || data.error))
+    .catch(err => console.error("Erreur fetch:", err));
 }
 </script>
+
 </body>
 </html>
