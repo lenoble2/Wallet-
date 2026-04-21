@@ -33,59 +33,24 @@
 </div>
 
 <script>
-async function confirmerEnvoi() {
-    console.log("Bouton cliqué"); // Vérification 1
-
-    // Récupération des éléments HTML
-    const inputDest = document.getElementById('destinataire');
-    const inputMontant = document.getElementById('montant');
-    const inputPin = document.getElementById('pin');
-
-    // Vérification si les éléments existent dans le HTML
-    if (!inputDest || !inputMontant || !inputPin) {
-        alert("Erreur technique : Un champ HTML est introuvable (ID mal écrit)");
-        return;
-    }
-
-    const senderId = localStorage.getItem('userId');
-    // On nettoie l'ID pour ne garder que le chiffre (ex: 080002 devient 2)
-    const receiverId = inputDest.value.replace("08000", "").trim();
-    const montant = inputMontant.value;
-    const pin = inputPin.value;
-
-    if (!senderId) {
-        alert("Session expirée. Reconnectez-vous.");
-        return;
-    }
-
+async function testerDestinataire() {
+    const destInput = document.getElementById('destinataire').value;
+    
     try {
-        console.log("Tentative d'envoi vers le serveur...");
-        const response = await fetch('/api/transfert', {
+        const response = await fetch('/api/verif-destinataire', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                senderId: senderId,
-                receiverId: receiverId,
-                montant: montant,
-                pin: pin
-            })
+            body: JSON.stringify({ receiverId: destInput })
         });
 
-        console.log("Réponse reçue du serveur");
         const data = await response.json();
         
-        // C'est ici que le message DOIT s'afficher
-        alert(data.message || "Réponse reçue sans message");
+        // On affiche la réponse dans une alerte
+        alert(data.message);
 
-        if (data.success) {
-            window.location.href = "dashboard.html";
-        }
     } catch (error) {
-        console.error("Erreur Fetch:", error);
-        alert("Impossible de joindre le serveur. Vérifiez votre connexion.");
+        alert("Le serveur ne répond pas. Vérifie tes logs Render !");
     }
-}
-
 }
 </script>
 

@@ -94,10 +94,19 @@ app.post('/api/connexion', (req, res) => {
 });
 
 // 3. Récupérer infos utilisateur (pour le Dashboard)
+// Route pour récupérer les infos de l'utilisateur (utilisée par le dashboard)
 app.get('/api/utilisateur/:id', (req, res) => {
-    db.query('SELECT id, nom, solde, email FROM utilisateurs WHERE id = ?', [req.params.id], (err, results) => {
-        if (err || results.length === 0) return res.status(404).json({ success: false });
-        res.json({ success: true, user: results[0] });
+    const userId = req.params.id;
+    
+    db.query("SELECT solde FROM utilisateurs WHERE id = ?", [userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: "Erreur DB" });
+        }
+        if (results.length > 0) {
+            res.json({ success: true, user: { solde: results[0].solde } });
+        } else {
+            res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
     });
 });
 
