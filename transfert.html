@@ -33,49 +33,59 @@
 </div>
 
 <script>
-console.log("Envoi de :", senderId, "vers :", receiverId);
-
 async function confirmerEnvoi() {
-    // 1. Récupérer l'ID de l'expéditeur (celui qui est connecté)
-    const senderId = localStorage.getItem('userId'); 
-    
-    // 2. Récupérer les infos du formulaire
-    const receiverDisplayId = document.getElementById('destinataire').value; // ex: 080002
-    const montant = document.getElementById('montant').value;
-console.log("Envoi de :", senderId, "vers :", receiverId);    const pin = document.getElementById('pin').value;
-		
-    // 3. Extraire l'ID numérique du destinataire (enlever le préfixe 08000)
-    // Si l'utilisateur tape "080002", on ne garde que "2"
-    const receiverId = receiverDisplayId.replace("08000", "");
+    console.log("Bouton cliqué"); // Vérification 1
 
-    if (!senderId  !receiverId  !montant || !pin) {
-        alert("Veuillez remplir tous les champs");
+    // Récupération des éléments HTML
+    const inputDest = document.getElementById('destinataire');
+    const inputMontant = document.getElementById('montant');
+    const inputPin = document.getElementById('pin');
+
+    // Vérification si les éléments existent dans le HTML
+    if (!inputDest || !inputMontant || !inputPin) {
+        alert("Erreur technique : Un champ HTML est introuvable (ID mal écrit)");
+        return;
+    }
+
+    const senderId = localStorage.getItem('userId');
+    // On nettoie l'ID pour ne garder que le chiffre (ex: 080002 devient 2)
+    const receiverId = inputDest.value.replace("08000", "").trim();
+    const montant = inputMontant.value;
+    const pin = inputPin.value;
+
+    if (!senderId) {
+        alert("Session expirée. Reconnectez-vous.");
         return;
     }
 
     try {
+        console.log("Tentative d'envoi vers le serveur...");
         const response = await fetch('/api/transfert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                senderId: senderId,    // envoie "1"
-                receiverId: receiverId, // envoie "2"
+                senderId: senderId,
+                receiverId: receiverId,
                 montant: montant,
                 pin: pin
             })
         });
 
+        console.log("Réponse reçue du serveur");
         const data = await response.json();
+        
+        // C'est ici que le message DOIT s'afficher
+        alert(data.message || "Réponse reçue sans message");
 
         if (data.success) {
-            alert("Transfert réussi !");
             window.location.href = "dashboard.html";
-        } else {
-            alert("Erreur : " + data.message);
         }
-    } catch (err) {
-        alert("Erreur de connexion au serveur.");
+    } catch (error) {
+        console.error("Erreur Fetch:", error);
+        alert("Impossible de joindre le serveur. Vérifiez votre connexion.");
     }
+}
+
 }
 </script>
 
