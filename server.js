@@ -109,62 +109,49 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
-// --- ROUTE 3 : TRANSFERT SÉCURISÉ ---
 app.post('/api/transfert', (req, res) => {
-    // On récupère le PIN en plus du reste
     const { senderId, receiverId, montant, pin } = req.body;
     const somme = parseFloat(montant);
 
-    // 1. Validation stricte des entrées
-    if (!senderId || !receiverId || isNaN(somme) || somme <= 0 || !pin) {
-        return res.status(400).json({ success: false, message: "Données manquantes ou invalides." });
-    }
-
     if (senderId === receiverId) {
-        return res.status(400).json({ success: false, message: "Expéditeur et destinataire identiques." });
+        return res.status(400).json({ success: false, message: "Envoi vers soi-même impossible" });
     }
 
     db.beginTransaction((err) => {
-        if (err) {
-            console.error("Erreur Transaction:", err);
-            return res.status(500).json({ success: false, message: "Erreur serveur" });
-        }
+        if (err) return res.status(500).json({ success: false });
 
-        // 2. Vérifier Solde ET PIN de l'expéditeur
-        // Note : En production, on compare le PIN avec bcrypt.compare()
+        // 1. Vérifier le solde ET le PIN de l'expéditeur
         db.query("SELECT solde, pin FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
             if (err || results.length === 0) {
-                return db.rollback(() => res.status(404).json({ success: false, message: "Utilisateur non trouvé" }));
+                return db.rollback(() => res.status(404).json({ success: false, message: "Expéditeur introuvable" }));
             }
 
             const user = results[0];
-
-            // Vérification du PIN (Adaptation simple)
-            if (user.pin !== pin) {
+            if (user.pin !== pin) { // Vérification du code secret
                 return db.rollback(() => res.status(401).json({ success: false, message: "Code PIN incorrect" }));
             }
 
-            // Vérification du solde
             if (user.solde < somme) {
                 return db.rollback(() => res.status(400).json({ success: false, message: "Solde insuffisant" }));
             }
 
-            // 3. DÉBITER l'expéditeur
+            // 2. Débiter
             db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
                 if (err) return db.rollback(() => res.status(500).json({ success: false }));
 
-                // 4. CRÉDITER le destinataire
+                // 3. Créditer
                 db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, results) => {
                     if (err || results.affectedRows === 0) {
                         return db.rollback(() => res.status(404).json({ success: false, message: "Destinataire introuvable" }));
                     }
 
-                    // 5. Finaliser
-                    db.commit((err) => {
-                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
-                        
-                        console.log(`✅ Transfert réussi: ${senderId} -> ${receiverId} (${somme} XOF)`);
-                        res.json({ success: true, message: "Transfert effectué avec succès !" });
+                    // 4. Enregistrer dans l'historique (Optionnel mais recommandé)
+                    const sqlHist = "INSERT INTO transactions (expediteur_id, destinataire_id, montant, date) VALUES (?, ?, ?, NOW())";
+                    db.query(sqlHist, [senderId, receiverId, somme], () => {
+                        db.commit((err) => {
+                            if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                            res.json({ success: true, message: "Transfert effectué !" });
+                        });
                     });
                 });
             });

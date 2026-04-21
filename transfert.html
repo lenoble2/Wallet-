@@ -34,38 +34,46 @@
 
 <script>
 
+async function confirmerEnvoi() {
+    // 1. Récupérer l'ID de l'expéditeur (celui qui est connecté)
+    const senderId = localStorage.getItem('userId'); 
+    
+    // 2. Récupérer les infos du formulaire
+    const receiverDisplayId = document.getElementById('destinataire').value; // ex: 080002
+    const montant = document.getElementById('montant').value;
+    const pin = document.getElementById('pin').value;
 
-// On simule la récupération de l'ID de celui qui est connecté
-const monID = "080001"; 
+    // 3. Extraire l'ID numérique du destinataire (enlever le préfixe 08000)
+    // Si l'utilisateur tape "080002", on ne garde que "2"
+    const receiverId = receiverDisplayId.replace("08000", "");
 
-async function envoyerArgent() {
-    const destinataire = document.getElementById('id_destinataire').value; // ex: 080002
-    const somme = document.getElementById('montant').value; // ex: 2000
-    const codePin = document.getElementById('pin').value;
+    if (!senderId  !receiverId  !montant || !pin) {
+        alert("Veuillez remplir tous les champs");
+        return;
+    }
 
     try {
-        const response = await fetch('https://lean3.onrender.com/api/transfert', {
+        const response = await fetch('/api/transfert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                senderId: monID,
-                receiverId: destinataire,
-                montant: somme,
-                pin: codePin
+                senderId: senderId,    // envoie "1"
+                receiverId: receiverId, // envoie "2"
+                montant: montant,
+                pin: pin
             })
         });
 
-        const resultat = await response.json();
+        const data = await response.json();
 
-        if (resultat.success) {
-            alert("Succès ! Nouveau solde : " + (5000 - 2000) + " XOF");
-            window.location.href = "dashboard.html"; // Retour au tableau de bord
+        if (data.success) {
+            alert("Transfert réussi !");
+            window.location.href = "dashboard.html";
         } else {
-            alert("Erreur : " + resultat.message);
+            alert("Erreur : " + data.message);
         }
-    } catch (error) {
-        console.error("Erreur de connexion au serveur");
-        alert("Le serveur ne répond pas. Réessayez dans 30 secondes.");
+    } catch (err) {
+        alert("Erreur de connexion au serveur.");
     }
 }
 </script>
