@@ -114,56 +114,40 @@ app.get('/test-db', (req, res) => {
 
 
 
-const SYSTEM_EMAIL = "pourcent@lean.com";
-const FEE_PERCENTAGE = 0.005;
+db.connect(err => {
+    if (err) console.error("Erreur de connexion DB:", err);
+    else console.log("Connecté à la base de données !");
+});
 
-// --- ROUTE TRANSFERT ---
+// ROUTE DE TRANSFERT
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant, pin } = req.body;
-    const somme = parseFloat(montant);
 
-    // 1. Vérification de base
-    if (!senderId  !receiverId  !somme || !pin) {
-        return res.status(400).json({ success: false, message: "Champs manquants" });
-    }
-
-    // 2. Vérifier l'expéditeur
+    // Étape 1 : Vérification expéditeur et PIN
     db.query("SELECT solde, pin FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur DB 1" });
+        if (err || results.length === 0) return res.json({ success: false, message: "Erreur expéditeur" });
         
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
-        }
+        if (results[0].pin !== pin) return res.json({ success: false, message: "PIN incorrect" });
+        if (results[0].solde < montant) return res.json({ success: false, message: "Solde insuffisant" });
 
-        const user = results[0];
-        if (user.pin !== pin) {
-            return res.status(401).json({ success: false, message: "PIN incorrect" });
-        }
+        // Étape 2 : Débit
+        db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [montant, senderId], (err) => {
+            if (err) return res.json({ success: false, message: "Erreur débit" });
 
-        if (user.solde < somme) {
-            return res.status(400).json({ success: false, message: "Solde insuffisant" });
-        }
-
-        // 3. Transaction simplifiée (Débit puis Crédit)
-        db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
-            if (err) return res.status(500).json({ success: false, message: "Erreur Débit" });
-
-            db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, resCredit) => {
-                if (err || resCredit.affectedRows === 0) {
-                    // Si le destinataire n'existe pas, on rembourse l'expéditeur !
-                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, senderId]);
-                    return res.status(404).json({ success: false, message: "Destinataire introuvable" });
+            // Étape 3 : Crédit
+            db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montant, receiverId], (err, result) => {
+                if (err || result.affectedRows === 0) {
+                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montant, senderId]);
+                    return res.json({ success: false, message: "Destinataire introuvable" });
                 }
-
-                // SUCCÈS TOTAL
                 res.json({ success: true, message: "Transfert réussi !" });
             });
         });
     });
-}); // <--- BIEN FERMER ICI
+});
 
-// Le reste de ton code (handleDisconnect et listen)
+// ÉCOUTE DU PORT (CRUCIAL POUR RENDER)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(🚀 Serveur Lean opérationnel sur le port ${PORT});
+    console.log("Serveur démarré sur le port " + PORT);
 });
