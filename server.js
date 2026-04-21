@@ -157,6 +157,7 @@ app.post('/api/transfert', (req, res) => {
     // Simulons une réponse positive pour tester ton bouton
     res.json({ success: true, message: "Transfert bien reçu par le serveur Lean" });
 });
+});
 
 // ÉCOUTE DU PORT (CRUCIAL POUR RENDER)
 const PORT = process.env.PORT || 3000;
