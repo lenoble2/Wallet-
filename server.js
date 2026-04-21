@@ -109,41 +109,67 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
+// --- ROUTE 3 : TRANSFERT SÉCURISÉ ---
+app.post('/api/transfert', (req, res) => {
+    // On récupère le PIN en plus du reste
+    const { senderId, receiverId, montant, pin } = req.body;
+    const somme = parseFloat(montant);
 
-app.post('/api/transfert', async (req, res) => {
-    const { senderId, receiverId, amount, pin } = req.body;
-    let connection;
-
-    try {
-        connection = await mysql.createConnection(dbConfig);
-        
-        // 1. Vérification de l'expéditeur (PIN et Solde)
-        const [senders] = await connection.execute('SELECT * FROM utilisateurs WHERE id = ?', [senderId]);
-        if (senders.length === 0) return res.status(404).json({ error: "Expéditeur introuvable" });
-        
-        const sender = senders[0];
-        if (sender.pin !== pin) return res.status(401).json({ error: "PIN incorrect" });
-        if (parseFloat(sender.solde) < parseFloat(amount)) return res.status(400).json({ error: "Solde insuffisant" });
-
-        // 2. Vérification du destinataire
-        const [receivers] = await connection.execute('SELECT * FROM utilisateurs WHERE id = ?', [receiverId]);
-        if (receivers.length === 0) return res.status(404).json({ error: "Destinataire introuvable" });
-
-        // 3. TRANSACTION (Débit / Crédit)
-        await connection.beginTransaction();
-        await connection.execute('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [amount, senderId]);
-        await connection.execute('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [amount, receiverId]);
-        await connection.commit();
-
-        res.json({ message: "Transfert effectué avec succès !" });
-
-    } catch (error) {
-        if (connection) await connection.rollback();
-        console.error(error);
-        res.status(500).json({ error: "Erreur serveur lors du transfert" });
-    } finally {
-        if (connection) await connection.end();
+    // 1. Validation stricte des entrées
+    if (!senderId || !receiverId || isNaN(somme) || somme <= 0 || !pin) {
+        return res.status(400).json({ success: false, message: "Données manquantes ou invalides." });
     }
+
+    if (senderId === receiverId) {
+        return res.status(400).json({ success: false, message: "Expéditeur et destinataire identiques." });
+    }
+
+    db.beginTransaction((err) => {
+        if (err) {
+            console.error("Erreur Transaction:", err);
+            return res.status(500).json({ success: false, message: "Erreur serveur" });
+        }
+
+        // 2. Vérifier Solde ET PIN de l'expéditeur
+        // Note : En production, on compare le PIN avec bcrypt.compare()
+        db.query("SELECT solde, pin FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
+            if (err || results.length === 0) {
+                return db.rollback(() => res.status(404).json({ success: false, message: "Utilisateur non trouvé" }));
+            }
+
+            const user = results[0];
+
+            // Vérification du PIN (Adaptation simple)
+            if (user.pin !== pin) {
+                return db.rollback(() => res.status(401).json({ success: false, message: "Code PIN incorrect" }));
+            }
+
+            // Vérification du solde
+            if (user.solde < somme) {
+                return db.rollback(() => res.status(400).json({ success: false, message: "Solde insuffisant" }));
+            }
+
+            // 3. DÉBITER l'expéditeur
+            db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false }));
+
+                // 4. CRÉDITER le destinataire
+                db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, results) => {
+                    if (err || results.affectedRows === 0) {
+                        return db.rollback(() => res.status(404).json({ success: false, message: "Destinataire introuvable" }));
+                    }
+
+                    // 5. Finaliser
+                    db.commit((err) => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                        
+                        console.log(`✅ Transfert réussi: ${senderId} -> ${receiverId} (${somme} XOF)`);
+                        res.json({ success: true, message: "Transfert effectué avec succès !" });
+                    });
+                });
+            });
+        });
+    });
 });
 
 
