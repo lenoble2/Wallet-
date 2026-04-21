@@ -109,41 +109,46 @@ const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
-// Route de transfert
 app.post('/api/transfert', async (req, res) => {
     const { senderId, receiverId, amount, pin } = req.body;
 
     try {
         // 1. Vérifier l'expéditeur et son PIN
+        // On cherche par ID (ex: 1)
         const [sender] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [senderId]);
         
-        if (sender.length === 0 || sender[0].pin !== pin) {
-            return res.status(401).json({ error: "PIN incorrect ou expéditeur introuvable" });
+        if (sender.length === 0) {
+            return res.status(404).json({ error: "Expéditeur introuvable" });
         }
 
-        if (sender[0].solde < amount) {
-            return res.status(400).json({ error: "Solde insuffisant" });
+        if (sender[0].pin !== pin) {
+            return res.status(401).json({ error: "PIN de sécurité incorrect" });
         }
 
-        // 2. Vérifier si le destinataire existe
+        if (parseFloat(sender[0].solde) < parseFloat(amount)) {
+            return res.status(400).json({ error: "Solde insuffisant pour ce transfert" });
+        }
+
+        // 2. Vérifier le destinataire
+        // Si tu saisis "080001", assure-toi que c'est bien l'ID dans ta table
         const [receiver] = await db.query('SELECT * FROM utilisateurs WHERE id = ?', [receiverId]);
+        
         if (receiver.length === 0) {
-            return res.status(404).json({ error: "Destinataire introuvable" });
+            return res.status(404).json({ error: "Destinataire introuvable (ID inexistant)" });
         }
 
-        // 3. Procéder au transfert (Transaction)
-        // Soustraire de l'expéditeur
+        // 3. Exécution du transfert (Transaction)
         await db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [amount, senderId]);
-        // Ajouter au destinataire
         await db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [amount, receiverId]);
 
-        res.json({ message: Transfert de ${amount} XOF réussi vers ${receiver[0].nom} ! });
+        res.json({ message: `Transfert réussi ! ${amount} XOF envoyés à ${receiver[0].nom}` });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Erreur lors de la transaction" });
+        res.status(500).json({ error: "Erreur technique lors du transfert" });
     }
 });
+
 
 
 handleDisconnect();
