@@ -20,30 +20,6 @@ const dbConfig = {
 
 };
 
-// 1. Déclare la variable db en haut
-let db;
-
-// 2. Définis la fonction de connexion
-function handleDisconnect() {
-    db = mysql.createConnection(dbConfig); // Assure-toi que dbConfig est bien défini au-dessus
-
-    db.connect(err => {
-        if (err) {
-            console.error('❌ Erreur DB:', err);
-            setTimeout(handleDisconnect, 2000); // Réessaie si ça échoue
-        } else {
-            console.log('✅ Connecté à la base de données');
-        }
-    });
-
-    db.on('error', err => {
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            handleDisconnect();
-        } else {
-            throw err;
-        }
-    });
-}
 
 // 3. APPELLE LA FONCTION pour démarrer la connexion
 handleDisconnect();
