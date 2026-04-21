@@ -1,61 +1,100 @@
+Lenoble:
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean Wallet - Transfert Sécurisé</title>
+    <title>Transfert - Lean</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 380px; }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 25px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #1557b0; }
-        #message { margin-top: 20px; text-align: center; padding: 10px; border-radius: 5px; display: none; }
+        .loading { display: none; color: orange; font-weight: bold; }
+        .success-msg { display: none; color: green; background: #eaffea; padding: 10px; border-radius: 5px; }
+        .error-msg { display: none; color: red; background: #ffeaea; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-<div class="transfert-container">
-    <h2>Nouveau Transfert</h2>
-    
-    <label>ID du destinataire :</label>
-    <input type="number" id="receiverInput" placeholder="Ex: 3">
-    
-    <label>Montant (XOF) :</label>
-    <input type="number" id="amountInput" placeholder="Ex: 2000">
-    
-    <label>Votre PIN :</label>
-    <input type="password" id="pinInput" placeholder="****">
-    
-    <button type="button" onclick="executerTransfert()">Confirmer l'envoi</button>
-    <p id="statusMessage"></p>
-</div>
+    <div class="container">
+        <h2>Nouveau Transfert</h2>
 
-<script>
-async function verifierDest() {
-    const idSaisi = document.getElementById('destinataire').value;
-    const affichageNom = document.getElementById('nom-destinataire'); // Un petit <span> ou <p> pour le retour
+        <div id="msg-succes" class="success-msg">✅ Reçu par le serveur ! Transfert en cours...</div>
+        <div id="msg-erreur" class="error-msg">❌ Erreur de connexion au serveur.</div>
 
-    if (idSaisi.length > 1) { // On vérifie si l'utilisateur a commencé à taper
-        try {
-            const response = await fetch(/api/verif-destinataire/${idSaisi});
-            const data = await response.json();
+        <form id="transferForm">
+            <label>ID du destinataire :</label>
+            <input type="text" id="receiverId" placeholder="Ex: 2" required oninput="verifierNom()">
+            <p id="nom-destinataire" style="font-size: 0.8em;"></p>
 
-            if (data.success) {
-                affichageNom.innerText = "✅ Destinataire : " + data.nom;
-                affichageNom.style.color = "green";
-            } else {
-                affichageNom.innerText = "❌ Ce destinataire n'existe pas";
-                affichageNom.style.color = "red";
+            <label>Montant (XOF) :</label>
+            <input type="number" id="amount" placeholder="Montant" required>
+
+            <label>Votre PIN :</label>
+            <input type="password" id="pin" placeholder="****" required>
+
+            <button type="submit" id="btn-envoyer">Confirmer l'envoi</button>
+            <p id="status" class="loading">Envoi au serveur... ⏳</p>
+        </form>
+    </div>
+
+    <script>
+        // 1. Vérification automatique du nom
+        async function verifierNom() {
+            const id = document.getElementById('receiverId').value;
+            const display = document.getElementById('nom-destinataire');
+            if(id.length > 0) {
+                try {
+                    const res = await fetch(/api/verif-destinataire/${id});
+                    const data = await res.json();
+                    if(data.success) {
+                        display.innerText = "Destinataire : " + data.nom;
+                        display.style.color = "green";
+                    } else {
+                        display.innerText = "Utilisateur inconnu";
+                        display.style.color = "red";
+                    }
+                } catch(e) { console.log("Serveur injoignable"); }
             }
-        } catch (error) {
-            console.error("Erreur de vérification");
         }
-    }
+
+        // 2. Envoi du transfert avec preuve de réception
+        document.getElementById('transferForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Afficher le message "Envoi au serveur"
+            document.getElementById('status').style.display = 'block';
+            document.getElementById('btn-envoyer').disabled = true;
+
+            const payload = {
+                senderId: localStorage.getItem('userId'), // Ton ID stocké à la connexion
+                receiverId: document.getElementById('receiverId').value,
+                amount: document.getElementById('amount').value,
+                pin: document.getElementById('pin').value
+            };
+
+            try {
+                const response = await fetch('/api/transfert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                document.getElementById('status').style.display = 'none';
+
+                if (result.success) {
+                    document.getElementById('msg-succes').style.display = 'block';
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+                } else {
+                    alert("Refusé par le serveur : " + result.message);
+                    document.getElementById('btn-envoyer').disabled = false;
+
 }
-
-</script>
-
+            } catch (error) {
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('msg-erreur').style.display = 'block';
+                document.getElementById('btn-envoyer').disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
