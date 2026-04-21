@@ -131,6 +131,24 @@ app.get('/test-db', (req, res) => {
     });
 });
 
+app.get('/api/verif-destinataire/:id', (req, res) => {
+    // On enlève le "08000" pour ne garder que l'ID numérique (ex: 2)
+    const idNettoye = req.params.id.replace("08000", "").trim();
+
+    db.query("SELECT nom FROM utilisateurs WHERE id = ?", [idNettoye], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: "Erreur base de données" });
+        }
+        
+        if (results.length > 0) {
+            // Le destinataire existe
+            res.json({ success: true, nom: results[0].nom });
+        } else {
+            // Personne n'a été trouvé
+            res.json({ success: false, message: "Destinataire introuvable" });
+        }
+    });
+});
 
 
 // ROUTE DE TRANSFERT

@@ -33,25 +33,28 @@
 </div>
 
 <script>
-async function testerDestinataire() {
-    const destInput = document.getElementById('destinataire').value;
-    
-    try {
-        const response = await fetch('/api/verif-destinataire', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ receiverId: destInput })
-        });
+async function verifierDest() {
+    const idSaisi = document.getElementById('destinataire').value;
+    const affichageNom = document.getElementById('nom-destinataire'); // Un petit <span> ou <p> pour le retour
 
-        const data = await response.json();
-        
-        // On affiche la réponse dans une alerte
-        alert(data.message);
+    if (idSaisi.length > 1) { // On vérifie si l'utilisateur a commencé à taper
+        try {
+            const response = await fetch(/api/verif-destinataire/${idSaisi});
+            const data = await response.json();
 
-    } catch (error) {
-        alert("Le serveur ne répond pas. Vérifie tes logs Render !");
+            if (data.success) {
+                affichageNom.innerText = "✅ Destinataire : " + data.nom;
+                affichageNom.style.color = "green";
+            } else {
+                affichageNom.innerText = "❌ Ce destinataire n'existe pas";
+                affichageNom.style.color = "red";
+            }
+        } catch (error) {
+            console.error("Erreur de vérification");
+        }
     }
 }
+
 </script>
 
 </body>
