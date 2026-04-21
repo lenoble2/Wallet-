@@ -33,47 +33,39 @@
 </div>
 
 <script>
-async function executerTransfert() {
-    const receiverId = document.getElementById('receiverInput').value;
-    const amount = document.getElementById('amountInput').value;
-    const pin = document.getElementById('pinInput').value;
-    const status = document.getElementById('statusMessage');
 
-    // TEST DE RÉACTION DU BOUTON
-    if (!receiverId  !amount  !pin) {
-        alert("Veuillez remplir tous les champs !");
-        return;
-    }
 
-    status.innerText = "Connexion au serveur...";
-    status.style.color = "blue";
+// On simule la récupération de l'ID de celui qui est connecté
+const monID = "080001"; 
+
+async function envoyerArgent() {
+    const destinataire = document.getElementById('id_destinataire').value; // ex: 080002
+    const somme = document.getElementById('montant').value; // ex: 2000
+    const codePin = document.getElementById('pin').value;
 
     try {
         const response = await fetch('https://lean3.onrender.com/api/transfert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                senderId: 1, // On simule que vous êtes l'ID 1 (Len)
-                receiverId: receiverId,
-                amount: amount,
-                pin: pin
+                senderId: monID,
+                receiverId: destinataire,
+                montant: somme,
+                pin: codePin
             })
         });
 
-        const data = await response.json();
+        const resultat = await response.json();
 
-        if (response.ok) {
-            alert("✅ " + data.message);
-            status.innerText = data.message;
-            status.style.color = "green";
+        if (resultat.success) {
+            alert("Succès ! Nouveau solde : " + (5000 - 2000) + " XOF");
+            window.location.href = "dashboard.html"; // Retour au tableau de bord
         } else {
-            alert("❌ Erreur : " + data.error);
-            status.innerText = data.error;
-            status.style.color = "red";
+            alert("Erreur : " + resultat.message);
         }
-    } catch (err) {
-        alert("Impossible de joindre le serveur. Vérifiez votre connexion.");
-        status.innerText = "Erreur de connexion.";
+    } catch (error) {
+        console.error("Erreur de connexion au serveur");
+        alert("Le serveur ne répond pas. Réessayez dans 30 secondes.");
     }
 }
 </script>
