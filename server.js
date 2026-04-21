@@ -93,6 +93,22 @@ app.post('/api/connexion', (req, res) => {
     });
 });
 
+// --- ROUTE 3 : RÉCUPÉRATION DU SOLDE ---
+app.get('/api/solde/:id', (req, res) => {
+    const cleanId = req.params.id.toString().replace("08000", "");
+    db.query("SELECT nom, email, solde FROM utilisateurs WHERE id = ?", [cleanId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        if (result && result.length > 0) {
+            res.json({ success: true, solde: result[0].solde, nom: result[0].nom, email: result[0].email });
+        } else {
+            res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+    });
+});
+
+
+
+
 // 3. Récupérer infos utilisateur (pour le Dashboard)
 // Route pour récupérer les infos de l'utilisateur (utilisée par le dashboard)
 app.get('/api/utilisateur/:id', (req, res) => {
