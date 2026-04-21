@@ -115,29 +115,28 @@ app.get('/test-db', (req, res) => {
 
 
 // ROUTE DE TRANSFERT
-app.post('/api/transfert', (req, res) => {
-    const { senderId, receiverId, montant, pin } = req.body;
+app.post('/api/verif-destinataire', (req, res) => {
+    const { receiverId } = req.body;
+    
+    // On nettoie l'ID au cas où l'utilisateur a écrit 080002 au lieu de 2
+    const cleanId = receiverId.toString().replace("08000", "").trim();
 
-    // Étape 1 : Vérification expéditeur et PIN
-    db.query("SELECT solde, pin FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
-        if (err || results.length === 0) return res.json({ success: false, message: "Erreur expéditeur" });
-        
-        if (results[0].pin !== pin) return res.json({ success: false, message: "PIN incorrect" });
-        if (results[0].solde < montant) return res.json({ success: false, message: "Solde insuffisant" });
+    console.log("Vérification du destinataire ID:", cleanId);
 
-        // Étape 2 : Débit
-        db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [montant, senderId], (err) => {
-            if (err) return res.json({ success: false, message: "Erreur débit" });
+    const sql = "SELECT nom FROM utilisateurs WHERE id = ?";
+    db.query(sql, [cleanId], (err, results) => {
+        if (err) {
+            console.error("Erreur SQL:", err);
+            return res.status(500).json({ success: false, message: "Erreur technique base de données" });
+        }
 
-            // Étape 3 : Crédit
-            db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montant, receiverId], (err, result) => {
-                if (err || result.affectedRows === 0) {
-                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [montant, senderId]);
-                    return res.json({ success: false, message: "Destinataire introuvable" });
-                }
-                res.json({ success: true, message: "Transfert réussi !" });
-            });
-        });
+        if (results.length > 0) {
+            // L'utilisateur existe !
+            res.json({ success: true, message: "Oui, le destinataire " + results[0].nom + " existe !" });
+        } else {
+            // L'utilisateur n'existe pas
+            res.json({ success: false, message: "Non, ce destinataire n'existe pas dans la base." });
+        }
     });
 });
 
