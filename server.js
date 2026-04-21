@@ -18,7 +18,9 @@ const dbConfig = {
     port: process.env.DB_PORT || 26246,
     ssl: { rejectUnauthorized: false },
     connectTimeout: 20000
+
 };
+
 // 1. Déclare la variable db en haut
 let db;
 
@@ -152,9 +154,6 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 
 
 // ROUTE DE TRANSFERT
-app.post('/api/verif-destinataire', (req, res) => {
-    const { receiverId } = req.body;
-    
     // On nettoie l'ID au cas où l'utilisateur a écrit 080002 au lieu de 2
     const cleanId = receiverId.toString().replace("08000", "").trim();
 
