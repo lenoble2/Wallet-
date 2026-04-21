@@ -114,11 +114,6 @@ app.get('/test-db', (req, res) => {
 
 
 
-db.connect(err => {
-    if (err) console.error("Erreur de connexion DB:", err);
-    else console.log("Connecté à la base de données !");
-});
-
 // ROUTE DE TRANSFERT
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant, pin } = req.body;
