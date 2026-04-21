@@ -17,9 +17,7 @@ const dbConfig = {
     port: process.env.DB_PORT || 26246,
     ssl: { rejectUnauthorized: false },
     connectTimeout: 20000
-
 };
-
 
 // 3. APPELLE LA FONCTION pour démarrer la connexion
 handleDisconnect();
