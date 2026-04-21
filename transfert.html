@@ -33,6 +33,7 @@
 </div>
 
 <script>
+console.log("Envoi de :", senderId, "vers :", receiverId);
 
 async function confirmerEnvoi() {
     // 1. Récupérer l'ID de l'expéditeur (celui qui est connecté)
@@ -41,8 +42,8 @@ async function confirmerEnvoi() {
     // 2. Récupérer les infos du formulaire
     const receiverDisplayId = document.getElementById('destinataire').value; // ex: 080002
     const montant = document.getElementById('montant').value;
-    const pin = document.getElementById('pin').value;
-
+console.log("Envoi de :", senderId, "vers :", receiverId);    const pin = document.getElementById('pin').value;
+		
     // 3. Extraire l'ID numérique du destinataire (enlever le préfixe 08000)
     // Si l'utilisateur tape "080002", on ne garde que "2"
     const receiverId = receiverDisplayId.replace("08000", "");
