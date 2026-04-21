@@ -1,98 +1,70 @@
-Lenoble:
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfert - Lean</title>
+    <title>Transfert Sécurisé - Lean</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .loading { display: none; color: orange; font-weight: bold; }
-        .success-msg { display: none; color: green; background: #eaffea; padding: 10px; border-radius: 5px; }
-        .error-msg { display: none; color: red; background: #ffeaea; padding: 10px; border-radius: 5px; }
+        .feedback { padding: 10px; margin: 10px 0; border-radius: 5px; display: none; font-weight: bold; }
+        .loading { background: #fff3cd; color: #856404; } /* Message orange : attente */
+        .success { background: #d4edda; color: #155724; } /* Message vert : succès */
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Nouveau Transfert</h2>
+        <h2>Effectuer un transfert</h2>
+        
+        <div id="status" class="feedback"></div>
 
-        <div id="msg-succes" class="success-msg">✅ Reçu par le serveur ! Transfert en cours...</div>
-        <div id="msg-erreur" class="error-msg">❌ Erreur de connexion au serveur.</div>
-
-        <form id="transferForm">
-            <label>ID du destinataire :</label>
-            <input type="text" id="receiverId" placeholder="Ex: 2" required oninput="verifierNom()">
-            <p id="nom-destinataire" style="font-size: 0.8em;"></p>
-
-            <label>Montant (XOF) :</label>
-            <input type="number" id="amount" placeholder="Montant" required>
-
-            <label>Votre PIN :</label>
-            <input type="password" id="pin" placeholder="****" required>
-
-            <button type="submit" id="btn-envoyer">Confirmer l'envoi</button>
-            <p id="status" class="loading">Envoi au serveur... ⏳</p>
+        <form id="formTransfert">
+            <input type="text" id="dest" placeholder="ID Destinataire (ex: 2)" required>
+            <input type="number" id="montant" placeholder="Montant en XOF" required>
+            <input type="password" id="monPin" placeholder="Votre PIN" required>
+            <button type="submit" id="btnValider">Confirmer l'envoi</button>
         </form>
     </div>
 
     <script>
-        // 1. Vérification automatique du nom
-        async function verifierNom() {
-            const id = document.getElementById('receiverId').value;
-            const display = document.getElementById('nom-destinataire');
-            if(id.length > 0) {
-                try {
-                    const res = await fetch(/api/verif-destinataire/${id});
-                    const data = await res.json();
-                    if(data.success) {
-                        display.innerText = "Destinataire : " + data.nom;
-                        display.style.color = "green";
-                    } else {
-                        display.innerText = "Utilisateur inconnu";
-                        display.style.color = "red";
-                    }
-                } catch(e) { console.log("Serveur injoignable"); }
-            }
-        }
-
-        // 2. Envoi du transfert avec preuve de réception
-        document.getElementById('transferForm').addEventListener('submit', async (e) => {
+        document.getElementById('formTransfert').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Afficher le message "Envoi au serveur"
-            document.getElementById('status').style.display = 'block';
-            document.getElementById('btn-envoyer').disabled = true;
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('btnValider');
 
-            const payload = {
-                senderId: localStorage.getItem('userId'), // Ton ID stocké à la connexion
-                receiverId: document.getElementById('receiverId').value,
-                amount: document.getElementById('amount').value,
-                pin: document.getElementById('pin').value
+            // Étape 1 : Montrer que le clic est enregistré
+            statusDiv.innerText = "⏳ Envoi au serveur en cours...";
+            statusDiv.className = "feedback loading";
+            statusDiv.style.display = "block";
+            btn.disabled = true;
+
+            const data = {
+                dest: document.getElementById('dest').value,
+                montant: document.getElementById('montant').value,
+                pin: document.getElementById('monPin').value
             };
 
             try {
                 const response = await fetch('/api/transfert', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
                 });
 
+                // Étape 2 : Le serveur a répondu
                 const result = await response.json();
-
-                document.getElementById('status').style.display = 'none';
-
+                
                 if (result.success) {
-                    document.getElementById('msg-succes').style.display = 'block';
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+                    statusDiv.innerText = "✅ Message reçu ! Transfert validé par le serveur.";
+                    statusDiv.className = "feedback success";
                 } else {
-                    alert("Refusé par le serveur : " + result.message);
-                    document.getElementById('btn-envoyer').disabled = false;
-
-}
-            } catch (error) {
-                document.getElementById('status').style.display = 'none';
-                document.getElementById('msg-erreur').style.display = 'block';
-                document.getElementById('btn-envoyer').disabled = false;
+                    statusDiv.innerText = "❌ Serveur : " + result.message;
+                    statusDiv.className = "feedback error";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                statusDiv.innerText = "❌ ÉCHEC : Le serveur est éteint ou injoignable.";
+                statusDiv.className = "feedback error";
+                btn.disabled = false;
             }
         });
     </script>
