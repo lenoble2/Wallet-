@@ -117,31 +117,53 @@ app.get('/test-db', (req, res) => {
 const SYSTEM_EMAIL = "pourcent@lean.com";
 const FEE_PERCENTAGE = 0.005;
 
-// ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
+// --- ROUTE TRANSFERT ---
 app.post('/api/transfert', (req, res) => {
     const { senderId, receiverId, montant, pin } = req.body;
+    const somme = parseFloat(montant);
 
-    // LOGS pour voir dans la console Render
-    console.log(Tentative : ${senderId} envoie ${montant} à ${receiverId});
+    // 1. Vérification de base
+    if (!senderId  !receiverId  !somme || !pin) {
+        return res.status(400).json({ success: false, message: "Champs manquants" });
+    }
 
-    db.query("SELECT * FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
-        if (err) {
-            console.error("Erreur DB:", err);
-            return res.status(500).json({ success: false, message: "Erreur DB" });
-        }
+    // 2. Vérifier l'expéditeur
+    db.query("SELECT solde, pin FROM utilisateurs WHERE id = ?", [senderId], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB 1" });
         
         if (results.length === 0) {
-            return res.status(404).json({ success: false, message: "Expéditeur non trouvé" });
+            return res.status(404).json({ success: false, message: "Expéditeur introuvable" });
         }
 
-        // Procéder au reste du code...
-        // TOUJOURS envoyer une réponse, même en cas d'erreur
+        const user = results[0];
+        if (user.pin !== pin) {
+            return res.status(401).json({ success: false, message: "PIN incorrect" });
+        }
+
+        if (user.solde < somme) {
+            return res.status(400).json({ success: false, message: "Solde insuffisant" });
+        }
+
+        // 3. Transaction simplifiée (Débit puis Crédit)
+        db.query("UPDATE utilisateurs SET solde = solde - ? WHERE id = ?", [somme, senderId], (err) => {
+            if (err) return res.status(500).json({ success: false, message: "Erreur Débit" });
+
+            db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, receiverId], (err, resCredit) => {
+                if (err || resCredit.affectedRows === 0) {
+                    // Si le destinataire n'existe pas, on rembourse l'expéditeur !
+                    db.query("UPDATE utilisateurs SET solde = solde + ? WHERE id = ?", [somme, senderId]);
+                    return res.status(404).json({ success: false, message: "Destinataire introuvable" });
+                }
+
+                // SUCCÈS TOTAL
+                res.json({ success: true, message: "Transfert réussi !" });
+            });
+        });
     });
-});
+}); // <--- BIEN FERMER ICI
 
-handleDisconnect();
-const PORT = process.env.PORT || 10000;
+// Le reste de ton code (handleDisconnect et listen)
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🌍 Serveur Lean opérationnel sur le port ${PORT}`);
+    console.log(🚀 Serveur Lean opérationnel sur le port ${PORT});
 });
-
