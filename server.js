@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
@@ -161,6 +160,7 @@ app.post('/api/transfert', (req, res) => {
         success: true, 
         message: "Message bien reçu par le serveur Lean !" 
     });
+});
 });
 
 // ÉCOUTE DU PORT (CRUCIAL POUR RENDER)
