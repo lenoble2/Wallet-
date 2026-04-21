@@ -111,19 +111,40 @@ const FEE_PERCENTAGE = 0.005;
 // ROUTE DE TRANSFERT (DÉBIT ET CRÉDIT)
 
 app.post('/api/transfert', async (req, res) => {
-    const { senderId, receiverId, amount, pin } = req.body; // Vérifie que ces noms arrivent du HTML
+    const { senderId, receiverId, amount, pin } = req.body;
+    let connection;
 
-    // CHANGE 'users' PAR 'utilisateurs' ICI
-    const query = "SELECT * FROM utilisateurs WHERE id = ?"; 
-    
-    db.query(query, [receiverId], (err, results) => {
-        if (err) return res.status(500).send(err);
-        if (results.length === 0) return res.status(404).json({ error: "Destinataire introuvable" });
+    try {
+        connection = await mysql.createConnection(dbConfig);
         
-        // Logique de vérification du PIN et du solde...
-    });
-});
+        // 1. Vérification de l'expéditeur (PIN et Solde)
+        const [senders] = await connection.execute('SELECT * FROM utilisateurs WHERE id = ?', [senderId]);
+        if (senders.length === 0) return res.status(404).json({ error: "Expéditeur introuvable" });
+        
+        const sender = senders[0];
+        if (sender.pin !== pin) return res.status(401).json({ error: "PIN incorrect" });
+        if (parseFloat(sender.solde) < parseFloat(amount)) return res.status(400).json({ error: "Solde insuffisant" });
 
+        // 2. Vérification du destinataire
+        const [receivers] = await connection.execute('SELECT * FROM utilisateurs WHERE id = ?', [receiverId]);
+        if (receivers.length === 0) return res.status(404).json({ error: "Destinataire introuvable" });
+
+        // 3. TRANSACTION (Débit / Crédit)
+        await connection.beginTransaction();
+        await connection.execute('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [amount, senderId]);
+        await connection.execute('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [amount, receiverId]);
+        await connection.commit();
+
+        res.json({ message: "Transfert effectué avec succès !" });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error(error);
+        res.status(500).json({ error: "Erreur serveur lors du transfert" });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
 
 
 handleDisconnect();

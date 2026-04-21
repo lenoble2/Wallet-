@@ -16,69 +16,65 @@
     </style>
 </head>
 <body>
-
-<div class="transfer-container">
+<div class="transfert-container">
     <h2>Nouveau Transfert</h2>
     
     <label>ID du destinataire :</label>
-    <input type="number" id="receiverId" placeholder="Ex: 3" required>
+    <input type="number" id="receiverInput" placeholder="Ex: 3">
     
     <label>Montant (XOF) :</label>
-    <input type="number" id="amount" placeholder="Entrez le montant" required>
-
-    <label>Votre PIN :</label>
-    <input type="password" id="senderPin" placeholder="****" maxlength="4" required>
-
-<button type="button" id="btn-transferer" onclick="validerTransfert()">Confirmer l'envoi</button>
-<div id="resultat-message"></div>
-
-<script>
-<script>
-function validerTransfert() {
-    console.log("Tentative de transfert lancée...");
+    <input type="number" id="amountInput" placeholder="Ex: 2000">
     
-    // Récupération des valeurs avec les bons IDs
-    const idDestinataire = document.getElementById('id_destinataire').value;
-    const montant = document.getElementById('montant').value;
-    const pin = document.getElementById('pin').value;
-    const messageDiv = document.getElementById('resultat-message');
+    <label>Votre PIN :</label>
+    <input type="password" id="pinInput" placeholder="****">
+    
+    <button type="button" onclick="executerTransfert()">Confirmer l'envoi</button>
+    <p id="statusMessage"></p>
+</div>
 
-    // Vérification simple pour voir si la fonction tourne
-    if (!idDestinataire  !montant  !pin) {
-        alert("Veuillez remplir tous les champs");
+<script>
+async function executerTransfert() {
+    const receiverId = document.getElementById('receiverInput').value;
+    const amount = document.getElementById('amountInput').value;
+    const pin = document.getElementById('pinInput').value;
+    const status = document.getElementById('statusMessage');
+
+    // TEST DE RÉACTION DU BOUTON
+    if (!receiverId  !amount  !pin) {
+        alert("Veuillez remplir tous les champs !");
         return;
     }
 
-    // Affichage d'un état de chargement
-    messageDiv.innerHTML = "Traitement en cours...";
-    messageDiv.style.color = "blue";
+    status.innerText = "Connexion au serveur...";
+    status.style.color = "blue";
 
-    fetch('/api/transfert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            senderId: 1, // Ton ID (Len)
-            receiverId: idDestinataire,
-            amount: montant,
-            pin: pin
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert("Succès : " + data.message);
-            messageDiv.innerHTML = data.message;
-            messageDiv.style.color = "green";
+    try {
+        const response = await fetch('https://lean3.onrender.com/api/transfert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                senderId: 1, // On simule que vous êtes l'ID 1 (Len)
+                receiverId: receiverId,
+                amount: amount,
+                pin: pin
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("✅ " + data.message);
+            status.innerText = data.message;
+            status.style.color = "green";
         } else {
-            alert("Erreur : " + data.error);
-            messageDiv.innerHTML = data.error;
-            messageDiv.style.color = "red";
+            alert("❌ Erreur : " + data.error);
+            status.innerText = data.error;
+            status.style.color = "red";
         }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        alert("Erreur de connexion au serveur");
-    });
+    } catch (err) {
+        alert("Impossible de joindre le serveur. Vérifiez votre connexion.");
+        status.innerText = "Erreur de connexion.";
+    }
 }
 </script>
 
