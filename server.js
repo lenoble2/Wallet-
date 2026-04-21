@@ -150,26 +150,12 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 });
 
 // ROUTE DE TRANSFERT
-    // On nettoie l'ID au cas où l'utilisateur a écrit 080002 au lieu de 2
-    const cleanId = receiverId.toString().replace("08000", "").trim();
-
-    console.log("Vérification du destinataire ID:", cleanId);
-
-    const sql = "SELECT nom FROM utilisateurs WHERE id = ?";
-    db.query(sql, [cleanId], (err, results) => {
-        if (err) {
-            console.error("Erreur SQL:", err);
-            return res.status(500).json({ success: false, message: "Erreur technique base de données" });
-        }
-
-        if (results.length > 0) {
-            // L'utilisateur existe !
-            res.json({ success: true, message: "Oui, le destinataire " + results[0].nom + " existe !" });
-        } else {
-            // L'utilisateur n'existe pas
-            res.json({ success: false, message: "Non, ce destinataire n'existe pas dans la base." });
-        }
-    });
+app.post('/api/transfert', (req, res) => {
+    console.log("📩 Message reçu au serveur !"); // Ce message apparaîtra dans tes logs Render
+    const { dest, montant, pin } = req.body;
+    
+    // Simulons une réponse positive pour tester ton bouton
+    res.json({ success: true, message: "Transfert bien reçu par le serveur Lean" });
 });
 
 // ÉCOUTE DU PORT (CRUCIAL POUR RENDER)
