@@ -19,25 +19,33 @@ const dbConfig = {
     ssl: { rejectUnauthorized: false },
     connectTimeout: 20000
 };
-
+// 1. Déclare la variable db en haut
 let db;
 
+// 2. Définis la fonction de connexion
 function handleDisconnect() {
-    db = mysql.createConnection(dbConfig);
+    db = mysql.createConnection(dbConfig); // Assure-toi que dbConfig est bien défini au-dessus
+
     db.connect(err => {
         if (err) {
-            console.error('❌ Erreur DB:', err.message);
-            setTimeout(handleDisconnect, 5000);
+            console.error('❌ Erreur DB:', err);
+            setTimeout(handleDisconnect, 2000); // Réessaie si ça échoue
         } else {
-            console.log('✅ Connecté à Aiven MySQL !');
-            initialiserBase();
+            console.log('✅ Connecté à la base de données');
         }
     });
+
     db.on('error', err => {
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') handleDisconnect();
-        else throw err;
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            handleDisconnect();
+        } else {
+            throw err;
+        }
     });
 }
+
+// 3. APPELLE LA FONCTION pour démarrer la connexion
+handleDisconnect();
 
 function initialiserBase() {
     const tableQuery = `CREATE TABLE IF NOT EXISTS utilisateurs (
@@ -92,20 +100,6 @@ app.post('/api/connexion', (req, res) => {
         res.json({ success: true, user: results[0] });
     });
 });
-
-// --- ROUTE 3 : RÉCUPÉRATION DU SOLDE ---
-app.get('/api/solde/:id', (req, res) => {
-    const cleanId = req.params.id.toString().replace("08000", "");
-    db.query("SELECT nom, email, solde FROM utilisateurs WHERE id = ?", [cleanId], (err, result) => {
-        if (err) return res.status(500).json({ success: false, error: err.message });
-        if (result && result.length > 0) {
-            res.json({ success: true, solde: result[0].solde, nom: result[0].nom, email: result[0].email });
-        } else {
-            res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
-        }
-    });
-});
-
 
 
 
