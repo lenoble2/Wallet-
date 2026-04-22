@@ -3,185 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean Wallet - Transfert</title>
+    <title>Effectuer un transfert - Lean Wallet</title>
     <style>
-        :root {
-            --primary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --dark: #1a1a1a;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        .transfer-card {
-            background: white;
-            width: 100%;
-            max-width: 400px;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        h2 { text-align: center; color: var(--dark); margin-bottom: 25px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-        input:focus { border-color: var(--primary); outline: none; }
-        
-        #dest-name {
-            font-size: 0.9em;
-            margin-top: 5px;
-            color: var(--success);
-            font-weight: bold;
-            min-height: 1.2em;
-        }
-
-        .btn-transfert {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-transfert:disabled { background: #ccc; }
-
-        #message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-        }
+        /* Un peu de style pour correspondre à votre capture */
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        h2 { text-align: center; margin-bottom: 25px; }
+        .group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:active { background-color: #0056b3; }
+        #message { margin-top: 15px; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="transfer-card">
+<div class="card">
     <h2>Effectuer un transfert</h2>
 
-    <div class="input-group">
+    <div class="group">
         <label>ID du destinataire</label>
-        <input type="text" id="destId" placeholder="Ex: 0800015 ou 15" oninput="verifierDestinataire()">
-        <div id="dest-name"></div>
+        <input type="text" id="dest" placeholder="Ex: 0800015 ou 15">
     </div>
 
-    <div class="input-group">
+    <div class="group">
         <label>Montant (XOF)</label>
         <input type="number" id="montant" placeholder="Somme à envoyer">
     </div>
 
-    <div class="input-group">
+    <div class="group">
         <label>Code PIN</label>
         <input type="password" id="pin" maxlength="4" placeholder="Votre code secret">
     </div>
 
-    <button class="btn-transfert" id="btnEnvoyer" onclick="confirmerTransfert()">Envoyer l'argent</button>
+    <button id="btnEnvoyer">Envoyer l'argent</button>
 
     <div id="message"></div>
 </div>
 
 <script>
-    // Récupérer l'ID de l'expéditeur (stocké lors de la connexion)
-    const expediteurId = localStorage.getItem('userId');
-
-    if (!expediteurId) {
-        alert("Session expirée, veuillez vous reconnecter.");
-        window.location.href = "index.html";
-    }
-
-    async function verifierDestinataire() {
-        const idRaw = document.getElementById('destId').value;
-        const nameDiv = document.getElementById('dest-name');
+    document.getElementById('btnEnvoyer').addEventListener('click', async () => {
+        const messageDiv = document.getElementById('message');
         
-        if (idRaw.length > 0) {
-            try {
-                const response = await fetch(/api/verif-destinataire/${idRaw});
-                const data = await response.json();
-                
-                if (data.success) {
-                    nameDiv.innerText = "✅ Destinataire : " + data.nom;
-                    nameDiv.style.color = "green";
-                } else {
-                    nameDiv.innerText = "❌ Destinataire inconnu";
-                    nameDiv.style.color = "red";
-                }
-            } catch (err) {
-                console.error("Erreur de vérification");
-            }
-        } else {
-            nameDiv.innerText = "";
-        }
-    }
+        // 1. Récupérer les données du formulaire
+        const data = {
+            // On récupère l'ID de l'expéditeur stocké lors de la connexion (ex: localStorage)
+            expediteurId: localStorage.getItem('userId'), 
+            dest: document.getElementById('dest').value,
+            montant: document.getElementById('montant').value,
+            pin: document.getElementById('pin').value
+        };
 
-async function confirmerTransfert() {
-        const dest = document.getElementById('destId').value;
-        const montant = document.getElementById('montant').value;
-        const pin = document.getElementById('pin').value;
-        const btn = document.getElementById('btnEnvoyer');
-        const msgDiv = document.getElementById('message');
-
-        if (!dest  !montant  !pin) {
-            alert("Veuillez remplir tous les champs.");
+        // 2. Vérification rapide avant envoi
+        if (!data.dest  !data.montant  !data.pin) {
+            messageDiv.style.color = "red";
+            messageDiv.innerText = "Veuillez remplir tous les champs.";
             return;
         }
 
-        if (!confirm(Voulez-vous vraiment envoyer ${montant} XOF à l'ID ${dest} ?)) return;
+        if (!data.expediteurId) {
+            messageDiv.style.color = "red";
+            messageDiv.innerText = "Erreur : Session expirée. Reconnectez-vous.";
+            return;
+        }
 
-        btn.disabled = true;
-        btn.innerText = "Traitement...";
+        messageDiv.style.color = "blue";
+        messageDiv.innerText = "Traitement en cours...";
 
         try {
+            // 3. Envoi au serveur
             const response = await fetch('/api/transfert', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    expediteurId: expediteurId,
-                    dest: dest,
-                    montant: montant,
-                    pin: pin
-                })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
             });
 
             const result = await response.json();
 
-            msgDiv.style.display = "block";
-            msgDiv.innerText = result.message;
-
+            // 4. Gestion de la réponse
             if (result.success) {
-                msgDiv.style.background = "#d4edda";
-                msgDiv.style.color = "#155724";
-                // Redirection après 2 secondes
-                setTimeout(() => { window.location.href = "dashboard.html"; }, 2000);
+                messageDiv.style.color = "green";
+                messageDiv.innerText = "✅ " + result.message;
+                // Optionnel : Rediriger ou vider les champs après un succès
+                document.getElementById('dest').value = '';
+                document.getElementById('montant').value = '';
+                document.getElementById('pin').value = '';
             } else {
-                msgDiv.style.background = "#f8d7da";
-                msgDiv.style.color = "#721c24";
-                btn.disabled = false;
-                btn.innerText = "Envoyer l'argent";
+                messageDiv.style.color = "red";
+                messageDiv.innerText = "❌ " + result.message;
             }
 
         } catch (error) {
-            alert("Erreur de connexion au serveur.");
-            btn.disabled = false;
+            console.error("Erreur:", error);
+            messageDiv.style.color = "red";
+            messageDiv.innerText = "Erreur de connexion au serveur.";
         }
-    }
+    });
 </script>
 
 </body>
