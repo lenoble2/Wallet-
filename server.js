@@ -123,19 +123,6 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 });
 
 // ROUTE DE TRANSFERT
-app.post('/api/transfert', (req, res) => {
-    // Ce message s'affichera dans l'écran noir de Render (Logs)
-    console.log("📩 ALERTE : Le serveur a reçu une demande de transfert !"); 
-    
-    const { dest, montant, pin } = req.body;
-    console.log(Détails : Vers l'ID ${dest}, Montant: ${montant} XOF);
-
-    res.json({ 
-        success: true, 
-        message: "Message bien reçu par le serveur Lean !" 
-    });
-});
-});
 
 // ÉCOUTE DU PORT (CRUCIAL POUR RENDER)
 const PORT = process.env.PORT || 3000;
