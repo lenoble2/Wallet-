@@ -130,31 +130,48 @@ app.post('/api/transfert', (req, res) => {
         return res.status(400).json({ success: false, message: "Données invalides" });
     }
 
-    // 1. Début de la transaction
-    db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur de transaction" });
+// 1. Début de la transaction
+console.log("--- Tentative de transfert lancée ---");
 
-        // 2. Vérifier si l'expéditeur a assez d'argent et le bon PIN
-        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
-            if (err || results.length === 0) {
-                return db.rollback(() => {
-                    res.json({ success: false, message: "Expéditeur introuvable" });
-                });
-            }
+db.beginTransaction((err) => {
+    if (err) {
+        console.error("Erreur d'initialisation de la transaction :", err);
+        return res.status(500).json({ success: false, message: "Erreur de transaction" });
+    }
+    console.log("Étape 1 : Transaction démarrée avec succès.");
 
-            const user = results[0];
-            if (user.pin !== pin) {
-                return db.rollback(() => {
-                    res.json({ success: false, message: "Code PIN incorrect" });
-                });
-            }
+    // 2. Vérifier l'expéditeur
+    db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
+        if (err) {
+            console.error("Erreur SQL lors de la recherche expéditeur :", err);
+            return db.rollback(() => {
+                res.json({ success: false, message: "Erreur base de données" });
+            });
+        }
 
-            if (user.solde < montantNum) {
-                return db.rollback(() => {
-                    res.json({ success: false, message: "Solde insuffisant" });
-                });
-            }
+        if (results.length === 0) {
+            console.log("Échec : Expéditeur ID " + expediteurId + " non trouvé.");
+            return db.rollback(() => {
+                res.json({ success: false, message: "Expéditeur introuvable" });
+            });
+        }
 
+        const user = results[0];
+        console.log("Étape 2 : Expéditeur trouvé (Solde actuel : " + user.solde + ")");
+
+        // Vérification du PIN
+        if (user.pin !== pin) {
+            console.log("Échec : Code PIN incorrect pour l'utilisateur " + expediteurId);
+            return db.rollback(() => {
+                res.json({ success: false, message: "Code PIN incorrect" });
+            });
+        }
+        
+        console.log("Étape 3 : Code PIN validé. Prêt pour la suite.");
+        
+        // La suite de ton code (débit, crédit, commit)...
+    });
+});
             // 3. Déduire l'argent de l'expéditeur
             db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
                 if (err) {
