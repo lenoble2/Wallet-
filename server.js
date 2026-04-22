@@ -11,6 +11,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Configuration de la base de données
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -157,6 +161,26 @@ app.post('/api/transfert', (req, res) => {
             }); 
         }); 
     }); 
+});
+
+// Route pour récupérer tous les utilisateurs (Admin)
+app.get('/api/admin/utilisateurs', (req, res) => {
+    const query = "SELECT id, nom, email, solde FROM utilisateurs ORDER BY id ASC";
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("Erreur SQL:", err);
+            return res.status(500).json({ success: false, message: "Erreur base de données" });
+        }
+        
+        // On formate l'ID pour l'affichage (ex: 1 devient 080001)
+        const usersFormatted = results.map(user => ({
+            ...user,
+            idDisplay: user.id.toString().padStart(6, '0') 
+        }));
+
+        res.json({ success: true, users: usersFormatted });
+    });
 });
 
 // Lancement du serveur
