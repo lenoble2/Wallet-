@@ -1,56 +1,189 @@
+Lenoble:
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfert Sécurisé - Lean</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Lean Wallet - Transfert</title>
     <style>
-        .feedback { padding: 10px; margin: 10px 0; border-radius: 5px; display: none; font-weight: bold; }
-        .loading { background: #fff3cd; color: #856404; } /* Message orange : attente */
-        .success { background: #d4edda; color: #155724; } /* Message vert : succès */
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --dark: #1a1a1a;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .transfer-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: var(--dark); margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+        
+        #dest-name {
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: var(--success);
+            font-weight: bold;
+            min-height: 1.2em;
+        }
+
+        .btn-transfert {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-transfert:disabled { background: #ccc; }
+
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Effectuer un transfert</h2>
 
-<div id="status" style="display:none; padding:10px; margin:10px; border-radius:5px;"></div>
+<div class="transfer-card">
+    <h2>Effectuer un transfert</h2>
 
-<button id="btnConfirmer">Confirmer l'envoi</button>
+    <div class="input-group">
+        <label>ID du destinataire</label>
+        <input type="text" id="destId" placeholder="Ex: 0800015 ou 15" oninput="verifierDestinataire()">
+        <div id="dest-name"></div>
+    </div>
+
+    <div class="input-group">
+        <label>Montant (XOF)</label>
+        <input type="number" id="montant" placeholder="Somme à envoyer">
+    </div>
+
+    <div class="input-group">
+        <label>Code PIN</label>
+        <input type="password" id="pin" maxlength="4" placeholder="Votre code secret">
+    </div>
+
+    <button class="btn-transfert" id="btnEnvoyer" onclick="confirmerTransfert()">Envoyer l'argent</button>
+
+    <div id="message"></div>
+</div>
 
 <script>
-document.getElementById('btnConfirmer').onclick = async () => {
-    const status = document.getElementById('status');
-    
-    // 1. On montre que le clic fonctionne
-    status.style.display = "block";
-    status.style.backgroundColor = "#fff3cd"; // Orange
-    status.innerText = "⏳ Envoi au serveur en cours...";
+    // Récupérer l'ID de l'expéditeur (stocké lors de la connexion)
+    const expediteurId = localStorage.getItem('userId');
 
-    try {
-        const response = await fetch('/api/transfert', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                dest: document.getElementById('receiverId').value,
-                montant: document.getElementById('amount').value,
-                pin: document.getElementById('pin').value
-            })
-        });
-
-        const data = await response.json();
-
-        // 2. Le serveur a répondu !
-        if (data.success) {
-            status.style.backgroundColor = "#d4edda"; // Vert
-            status.innerText = "✅ Succès : " + data.message;
-        }
-    } catch (err) {
-        status.style.backgroundColor = "#f8d7da"; // Rouge
-        status.innerText = "❌ Le serveur est injoignable.";
+    if (!expediteurId) {
+        alert("Session expirée, veuillez vous reconnecter.");
+        window.location.href = "index.html";
     }
-};
+
+    async function verifierDestinataire() {
+        const idRaw = document.getElementById('destId').value;
+        const nameDiv = document.getElementById('dest-name');
+        
+        if (idRaw.length > 0) {
+            try {
+                const response = await fetch(/api/verif-destinataire/${idRaw});
+                const data = await response.json();
+                
+                if (data.success) {
+                    nameDiv.innerText = "✅ Destinataire : " + data.nom;
+                    nameDiv.style.color = "green";
+                } else {
+                    nameDiv.innerText = "❌ Destinataire inconnu";
+                    nameDiv.style.color = "red";
+                }
+            } catch (err) {
+                console.error("Erreur de vérification");
+            }
+        } else {
+            nameDiv.innerText = "";
+        }
+    }
+
+async function confirmerTransfert() {
+        const dest = document.getElementById('destId').value;
+        const montant = document.getElementById('montant').value;
+        const pin = document.getElementById('pin').value;
+        const btn = document.getElementById('btnEnvoyer');
+        const msgDiv = document.getElementById('message');
+
+        if (!dest  !montant  !pin) {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+
+        if (!confirm(Voulez-vous vraiment envoyer ${montant} XOF à l'ID ${dest} ?)) return;
+
+        btn.disabled = true;
+        btn.innerText = "Traitement...";
+
+        try {
+            const response = await fetch('/api/transfert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    expediteurId: expediteurId,
+                    dest: dest,
+                    montant: montant,
+                    pin: pin
+                })
+            });
+
+            const result = await response.json();
+
+            msgDiv.style.display = "block";
+            msgDiv.innerText = result.message;
+
+            if (result.success) {
+                msgDiv.style.background = "#d4edda";
+                msgDiv.style.color = "#155724";
+                // Redirection après 2 secondes
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 2000);
+            } else {
+                msgDiv.style.background = "#f8d7da";
+                msgDiv.style.color = "#721c24";
+                btn.disabled = false;
+                btn.innerText = "Envoyer l'argent";
+            }
+
+        } catch (error) {
+            alert("Erreur de connexion au serveur.");
+            btn.disabled = false;
+        }
+    }
 </script>
+
 </body>
-</html>	
+</html>
