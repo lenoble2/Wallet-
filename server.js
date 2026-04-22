@@ -115,47 +115,48 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 
 
 // ROUT TRANSFERT
+
 app.post('/api/transfert', (req, res) => {
-    const { expediteurId, dest, montant, pin } = req.body;
-    const montantNum = parseFloat(montant);
-    const idDestinataire = dest.replace("DB000", "");
+    const { expediteurId, dest, montant, pin } = req.body;
+    const montantNum = parseFloat(montant);
+    const idDestinataire = dest.replace("08000", "");
 
-    db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur serveur" });
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur serveur" });
 
-        // 1. Vérifier l'expéditeur (Solde et PIN)
-        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
-            if (err || results.length === 0) {
-                return db.rollback(() => res.json({ success: false, message: "Expéditeur introuvable" }));
-            }
+        // 1. Vérifier l'expéditeur (Solde et PIN)
+        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
+            if (err || results.length === 0) {
+                return db.rollback(() => res.json({ success: false, message: "Expéditeur introuvable" }));
+            }
 
-            const user = results[0];
-            if (user.pin !== pin) {
-                return db.rollback(() => res.json({ success: false, message: "Code PIN incorrect" }));
-            }
-            if (user.solde < montantNum) {
-                return db.rollback(() => res.json({ success: false, message: "Solde insuffisant" }));
-            }
+            const user = results[0];
+            if (user.pin !== pin) {
+                return db.rollback(() => res.json({ success: false, message: "Code PIN incorrect" }));
+            }
+            if (user.solde < montantNum) {
+                return db.rollback(() => res.json({ success: false, message: "Solde insuffisant" }));
+            }
 
-            // 2. Débiter l'expéditeur
-            db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
-                if (err) return db.rollback(() => res.json({ success: false, message: "Erreur débit" }));
+            // 2. Débiter l'expéditeur
+            db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
+                if (err) return db.rollback(() => res.json({ success: false, message: "Erreur débit" }));
 
-                // 3. Créditer le destinataire
-                db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [montantNum, idDestinataire], (err, result) => {
-                    if (err || result.affectedRows === 0) {
-                        return db.rollback(() => res.json({ success: false, message: "Destinataire inconnu" }));
-                    }
+                // 3. Créditer le destinataire
+                db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [montantNum, idDestinataire], (err, result) => {
+                    if (err || result.affectedRows === 0) {
+                        return db.rollback(() => res.json({ success: false, message: "Destinataire inconnu" }));
+                    }
 
-                    // 4. Valider définitivement
-                    db.commit((err) => {
-                        if (err) return db.rollback(() => res.json({ success: false }));
-                        res.json({ success: true, message: "Transfert effectué !" });
-                    });
-                }); 
-            }); 
-        }); 
-    }); 
+                    // 4. Valider définitivement
+                    db.commit((err) => {
+                        if (err) return db.rollback(() => res.json({ success: false }));
+                        res.json({ success: true, message: "Transfert effectué !" });
+                    });
+                }); 
+            }); 
+        }); 
+    }); 
 });
 
 // Lancement du serveur
