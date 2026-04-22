@@ -119,11 +119,71 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 });
 
 // 5. Transfert (Simplifié pour réception)
+// 5. ROUTE DE TRANSFERT (Logique complète avec Transaction)
 app.post('/api/transfert', (req, res) => {
-    const { dest, montant, pin } = req.body;
-    console.log(`💸 Alerte transfert : Vers l'ID ${dest}, Montant: ${montant} XOF`);
-    // Ici tu ajouteras ta logique UPDATE plus tard
-    res.json({ success: true, message: "Requête de transfert reçue" });
+    const { expediteurId, dest, montant, pin } = req.body; // dest est l'ID du destinataire
+    const montantNum = parseFloat(montant);
+
+    if (!expediteurId || !dest || !montantNum || montantNum <= 0) {
+        return res.status(400).json({ success: false, message: "Données invalides" });
+    }
+
+    // 1. Début de la transaction
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur de transaction" });
+
+        // 2. Vérifier si l'expéditeur a assez d'argent et le bon PIN
+        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
+            if (err || results.length === 0) {
+                return db.rollback(() => {
+                    res.json({ success: false, message: "Expéditeur introuvable" });
+                });
+            }
+
+            const user = results[0];
+            if (user.pin !== pin) {
+                return db.rollback(() => {
+                    res.json({ success: false, message: "Code PIN incorrect" });
+                });
+            }
+
+            if (user.solde < montantNum) {
+                return db.rollback(() => {
+                    res.json({ success: false, message: "Solde insuffisant" });
+                });
+            }
+
+            // 3. Déduire l'argent de l'expéditeur
+            db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
+                if (err) {
+                    return db.rollback(() => {
+                        res.json({ success: false, message: "Erreur lors du retrait" });
+                    });
+                }
+
+                // 4. Ajouter l'argent au destinataire (ID nettoyé si besoin)
+                const idDestinataire = dest.replace("08000", ""); // Sécurité si ton QR code ajoute ce préfixe
+                db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [montantNum, idDestinataire], (err, result) => {
+                    if (err || result.affectedRows === 0) {
+                        return db.rollback(() => {
+                            res.json({ success: false, message: "Destinataire introuvable" });
+                        });
+                    }
+
+                    // 5. Valider la transaction
+                    db.commit((err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                res.json({ success: false, message: "Erreur finale de validation" });
+                            });
+                        }
+                        console.log(`✅ Transfert réussi : ${montantNum} XOF de l'ID ${expediteurId} vers ${idDestinataire}`);
+                        res.json({ success: true, message: "Transfert effectué avec succès !" });
+                    });
+                });
+            });
+        });
+    });
 });
 
 // 6. Test DB et Page d'accueil
