@@ -49,20 +49,13 @@ db.connect((err) => {
 }
 
 function initialiserBase() {
-    const tableQuery = `
-        CREATE TABLE IF NOT EXISTS utilisateurs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            nom VARCHAR(100),
-            email VARCHAR(100) UNIQUE,
-            pin VARCHAR(10),
-            solde DECIMAL(15, 2) DEFAULT 0.00
-        );`;
-    
+const tableQuery = 'CREATE TABLE IF NOT EXISTS utilisateurs (id INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(100), email VARCHAR(100) UNIQUE, pin VARCHAR(10), solde DECIMAL(15, 2) DEFAULT 0.00)';
     db.query(tableQuery, (err) => {
-        if (err) console.error("❌ Erreur création table :", err.message);
-        else console.log("📊 Table utilisateurs prête");
+        if (err) console.error('❌ Erreur :', err.message);
+        else console.log('📊 Table prête');
     });
 }
+
 
 handleDisconnect();
 
@@ -120,101 +113,49 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
     });
 });
 
-// 5. Transfert (Simplifié pour réception)
-// 5. ROUTE DE TRANSFERT (Logique complète avec Transaction)
+
+// ROUT TRANSFERT
 app.post('/api/transfert', (req, res) => {
-    const { expediteurId, dest, montant, pin } = req.body; // dest est l'ID du destinataire
+    const { expediteurId, dest, montant, pin } = req.body;
     const montantNum = parseFloat(montant);
+    const idDestinataire = dest.replace("DB000", "");
 
-    if (!expediteurId || !dest || !montantNum || montantNum <= 0) {
-        return res.status(400).json({ success: false, message: "Données invalides" });
-    }
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur serveur" });
 
-// 1. Début de la transaction
-console.log("--- Tentative de transfert lancée ---");
+        // 1. Vérifier l'expéditeur (Solde et PIN)
+        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
+            if (err || results.length === 0) {
+                return db.rollback(() => res.json({ success: false, message: "Expéditeur introuvable" }));
+            }
 
-db.beginTransaction((err) => {
-    if (err) {
-        console.error("Erreur d'initialisation de la transaction :", err);
-        return res.status(500).json({ success: false, message: "Erreur de transaction" });
-    }
-    console.log("Étape 1 : Transaction démarrée avec succès.");
+            const user = results[0];
+            if (user.pin !== pin) {
+                return db.rollback(() => res.json({ success: false, message: "Code PIN incorrect" }));
+            }
+            if (user.solde < montantNum) {
+                return db.rollback(() => res.json({ success: false, message: "Solde insuffisant" }));
+            }
 
-    // 2. Vérifier l'expéditeur
-    db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
-        if (err) {
-            console.error("Erreur SQL lors de la recherche expéditeur :", err);
-            return db.rollback(() => {
-                res.json({ success: false, message: "Erreur base de données" });
-            });
-        }
-
-        if (results.length === 0) {
-            console.log("Échec : Expéditeur ID " + expediteurId + " non trouvé.");
-            return db.rollback(() => {
-                res.json({ success: false, message: "Expéditeur introuvable" });
-            });
-        }
-
-        const user = results[0];
-        console.log("Étape 2 : Expéditeur trouvé (Solde actuel : " + user.solde + ")");
-
-        // Vérification du PIN
-        if (user.pin !== pin) {
-            console.log("Échec : Code PIN incorrect pour l'utilisateur " + expediteurId);
-            return db.rollback(() => {
-                res.json({ success: false, message: "Code PIN incorrect" });
-            });
-        }
-        
-        console.log("Étape 3 : Code PIN validé. Prêt pour la suite.");
-        
-        // La suite de ton code (débit, crédit, commit)...
-    });
-});
-            // 3. Déduire l'argent de l'expéditeur
+            // 2. Débiter l'expéditeur
             db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
-                if (err) {
-                    return db.rollback(() => {
-                        res.json({ success: false, message: "Erreur lors du retrait" });
-                    });
-                }
+                if (err) return db.rollback(() => res.json({ success: false, message: "Erreur débit" }));
 
-                // 4. Ajouter l'argent au destinataire (ID nettoyé si besoin)
-                const idDestinataire = dest.replace("08000", ""); // Sécurité si ton QR code ajoute ce préfixe
+                // 3. Créditer le destinataire
                 db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [montantNum, idDestinataire], (err, result) => {
                     if (err || result.affectedRows === 0) {
-                        return db.rollback(() => {
-                            res.json({ success: false, message: "Destinataire introuvable" });
-                        });
+                        return db.rollback(() => res.json({ success: false, message: "Destinataire inconnu" }));
                     }
 
-                    // 5. Valider la transaction
+                    // 4. Valider définitivement
                     db.commit((err) => {
-                        if (err) {
-                            return db.rollback(() => {
-                                res.json({ success: false, message: "Erreur finale de validation" });
-                            });
-                        }
-                        console.log(`✅ Transfert réussi : ${montantNum} XOF de l'ID ${expediteurId} vers ${idDestinataire}`);
-                        res.json({ success: true, message: "Transfert effectué avec succès !" });
+                        if (err) return db.rollback(() => res.json({ success: false }));
+                        res.json({ success: true, message: "Transfert effectué !" });
                     });
-                });
-            });
-        });
-    });
-});
-
-// 6. Test DB et Page d'accueil
-app.get('/test-db', (req, res) => {
-    db.query('SELECT 1 + 1 AS result', (err, results) => {
-        if (err) return res.status(500).send("Erreur DB : " + err.message);
-        res.send("La base de données répond bien !");
-    });
-});
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+                }); 
+            }); 
+        }); 
+    }); 
 });
 
 // Lancement du serveur
