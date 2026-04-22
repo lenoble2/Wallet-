@@ -27,15 +27,17 @@ let db;
 function handleDisconnect() {
     db = mysql.createConnection(dbConfig);
 
-    db.connect((err) => {
-        if (err) {
-            console.error("❌ Erreur de connexion DB :", err.message);
-            setTimeout(handleDisconnect, 2000);
-        } else {
-            console.log("✅ Connecté à la base de données MySQL");
-            initialiserBase();
-        }
-    });
+db.connect((err) => {
+    if (err) {
+        console.error("❌ ERREUR CRITIQUE DE CONNEXION :");
+        console.error("Message :", err.message);
+        console.error("Code d'erreur :", err.code);
+        // On ne coupe pas le serveur pour pouvoir lire les logs sur Render
+    } else {
+        console.log("✅ Connecté à la base de données MySQL");
+        initialiserBase();
+    }
+});
 
     db.on('error', (err) => {
         if (err.code === 'PROTOCOL_CONNECTION_LOST') {
