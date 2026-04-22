@@ -43,9 +43,11 @@
 </div>
 
 <script>
-    document.getElementById('btnEnvoyer').addEventListener('click', async () => {
-        const messageDiv = document.getElementById('message');
-        
+document.getElementById('btnEnvoyer').addEventListener('click', async () => {
+    alert("Le bouton a été cliqué !"); // <--- AJOUTEZ CECI
+    const messageDiv = document.getElementById('message');
+    // ... reste du code
+
         // 1. Récupérer les données du formulaire
         const data = {
             // On récupère l'ID de l'expéditeur stocké lors de la connexion (ex: localStorage)
