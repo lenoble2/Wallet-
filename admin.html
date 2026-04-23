@@ -1,118 +1,80 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Lean Wallet</title>
+    <style>
+        /* Style identique à ton dashboard */
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 0; }
+        .header { background: #000080; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 20px; }
+        .history-section { padding: 15px; max-width: 500px; margin: auto; }
+        
+        .transaction-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #000080;
+        }
+        .trans-info { display: flex; flex-direction: column; }
+        .trans-name { font-weight: bold; color: #2c3e50; font-size: 15px; }
+        .trans-email { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+        .trans-amount { font-weight: bold; color: #000080; font-size: 15px; }
+    </style>
 </head>
-<style>
-.icon-container svg {
-    width: 28px; /* Taille de l'icône */
-    height: 28px;
-    display: block;
-}
-</style>
 <body>
-<div class="history-section admin-panel">
-    <div class="history-title">Membres inscrits (Base de données)</div>
-    <div class="users-table-container">
-        <table class="lean-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Solde</th>
-                </tr>
-            </thead>
-            <tbody id="liste-membres-db">
-                <tr class="user-row">
-                    <td colspan="4" style="text-align:center; padding:20px; color:gray;">
-                        Chargement des utilisateurs...
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+
+<div class="header">Gestion des Membres Lean</div>
+
+<div class="history-section">
+    <div id="liste-membres">
+        <p style="text-align:center; color: gray;">Chargement de la base de données...</p>
     </div>
 </div>
 
-    
-<style>
-/* --- STYLE DU TABLEAU DES MEMBRES --- */
-.users-table-container {
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    overflow-x: auto; /* Défilement horizontal sur petit écran */
-    margin-bottom: 50px;
-}
-
-.lean-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-}
-
-.lean-table th {
-    background-color: #f8f9fa;
-    color: #7f8c8d;
-    text-align: left;
-    padding: 12px;
-    border-bottom: 2px solid #eee;
-    font-size: 11px;
-    text-transform: uppercase;
-}
-
-.lean-table td {
-    padding: 12px;
-    border-bottom: 1px solid #f9f9f9;
-    color: #333;
-}
-
-.user-row:hover {
-    background-color: #fcfcfc;
-}
-
-.text-id { font-weight: bold; color: #95a5a6; }
-.text-name { font-weight: bold; color: #2c3e50; }
-.text-solde { color: #008; font-weight: bold; } /* Bleu Lean */
-
-</style>
 <script>
-    async function chargerMembresDB() {
-    const tableBody = document.getElementById('liste-membres-db');
-    try {
-        // Remplace par ton endpoint qui fait "SELECT * FROM utilisateurs"
-        const response = await fetch(${SERVER_URL}/utilisateurs); 
-        const data = await response.json();
+    // Ton lien direct qui fonctionne
+    const API_URL = "https://lean3.onrender.com/api/admin/utilisateurs";
 
-        if (data.success && data.users.length > 0) {
-            tableBody.innerHTML = ""; 
-            data.users.forEach(user => {
-                tableBody.innerHTML += 
-                    <tr class="user-row">
-                        <td class="text-id">${user.id}</td>
-                        <td class="text-name">${user.nom}</td>
-                        <td><small>${user.email}</small></td>
-                        <td class="text-solde">${parseFloat(user.solde).toLocaleString()} <small>XOF</small></td>
-                    </tr>
-                ;
-            });
+    async function chargerMembres() {
+        const container = document.getElementById('liste-membres');
+        
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+
+            // On vérifie si c'est un tableau direct ou un objet avec une propriété 'users'
+            const membres = Array.isArray(data) ? data : (data.users || []);
+
+            if (membres.length > 0) {
+                container.innerHTML = ""; // On efface le message de chargement
+
+                membres.forEach(user => {
+                    // Création du visuel identique à ton dashboard
+                    container.innerHTML += 
+                        <div class="transaction-item">
+                            <div class="trans-info">
+                                <span class="trans-name">${user.nom}</span>
+                                <span class="trans-email">${user.email}</span>
+                            </div>
+                            <div class="trans-amount">
+                                ${parseFloat(user.solde).toLocaleString('fr-FR')} XOF
+                            </div>
+                        </div>
+                    ;
+                });
+            } else {
+                container.innerHTML = "<p style='text-align:center;'>Aucun utilisateur trouvé.</p>";
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            container.innerHTML = "<p style='text-align:center; color:red;'>Erreur de connexion à l'API Render.</p>";
         }
-    } catch (error) {
-        tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Erreur de connexion serveur</td></tr>";
     }
-}
 
-// Ajoute l'appel à la fonction au chargement de la page
-window.onload = () => {
-    chargerDonnees();
-    chargerMembresDB();
-};
-
+    // Exécution automatique
+    window.onload = chargerMembres;
 </script>
 
 </body>
-
 </html>

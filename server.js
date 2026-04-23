@@ -9,11 +9,16 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+
+app.get('/api/admin/utilisateurs', (req, res) => { /* ta requête SQL */ });
+
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
+
+app.use(express.static(__dirname));
+
 
 // Configuration de la base de données
 const dbConfig = {
