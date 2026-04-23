@@ -1,97 +1,116 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Lean</title>
-    <style>
-        body { font-family: 'Courier New', Courier, monospace; background-color: #1a1a1a; color: #00ff00; margin: 20px; }
-        .dashboard { max-width: 800px; margin: auto; }
-        h1 { border-bottom: 2px solid #00ff00; padding-bottom: 10px; text-transform: uppercase; }
-        .stats-box { display: flex; gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: #2a2a2a; padding: 15px; border-radius: 8px; flex: 1; border-left: 5px solid #00ff00; }
-        
-        table { width: 100%; border-collapse: collapse; background: #222; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #444; text-align: left; }
-        th { background: #333; color: #ffcc00; }
-        tr:hover { background: #2d2d2d; }
-        
-        .btn-refresh { background: #00ff00; color: black; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 10px; }
-        .status-online { color: #00ff00; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
 </head>
+<style>
+.icon-container svg {
+    width: 28px; /* Taille de l'icône */
+    height: 28px;
+    display: block;
+}
+</style>
 <body>
-
-<div class="dashboard">
-    <h1>Lean Server Management</h1>
-    
-    <div class="stats-box">
-        <div class="stat-card">
-            <div>Serveur: <span class="status-online">ACTIF</span></div>
-            <div>IP: 10.97.154.31</div>
-        </div>
-        <div class="stat-card">
-            <div>Utilisateurs: <span id="total-users">0</span></div>
-        </div>
-    </div>
-
-    <button class="btn-refresh" onclick="chargerUtilisateurs()">Rafraîchir les données</button>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>E-mail</th>
-                <th>Solde (XOF)</th>
-            </tr>
-        </thead>
-        <tbody id="user-table-body">
+<div class="history-section admin-panel">
+    <div class="history-title">Membres inscrits (Base de données)</div>
+    <div class="users-table-container">
+        <table class="lean-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Solde</th>
+                </tr>
+            </thead>
+            <tbody id="liste-membres-db">
+                <tr class="user-row">
+                    <td colspan="4" style="text-align:center; padding:20px; color:gray;">
+                        Chargement des utilisateurs...
+                    </td>
+                </tr>
             </tbody>
-    </table>
+        </table>
+    </div>
 </div>
+
+    
+<style>
+/* --- STYLE DU TABLEAU DES MEMBRES --- */
+.users-table-container {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    overflow-x: auto; /* Défilement horizontal sur petit écran */
+    margin-bottom: 50px;
+}
+
+.lean-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.lean-table th {
+    background-color: #f8f9fa;
+    color: #7f8c8d;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #eee;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.lean-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f9f9f9;
+    color: #333;
+}
+
+.user-row:hover {
+    background-color: #fcfcfc;
+}
+
+.text-id { font-weight: bold; color: #95a5a6; }
+.text-name { font-weight: bold; color: #2c3e50; }
+.text-solde { color: #008; font-weight: bold; } /* Bleu Lean */
+
+</style>
 <script>
-    // Utilise une URL relative si le HTML est servi par le même serveur
-    const API_URL = "/api/admin/utilisateurs";
-    async function chargerUtilisateurs() {
-        const tableBody = document.getElementById('user-table-body');
-        const totalDisplay = document.getElementById('total-users');
-        
-        // Petit effet visuel pendant le chargement
-        tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Chargement...</td></tr>";
-        
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
+    async function chargerMembresDB() {
+    const tableBody = document.getElementById('liste-membres-db');
+    try {
+        // Remplace par ton endpoint qui fait "SELECT * FROM utilisateurs"
+        const response = await fetch(${SERVER_URL}/utilisateurs); 
+        const data = await response.json();
 
-            if (data.success) {
-                tableBody.innerHTML = ""; // Vide la table
-                totalDisplay.textContent = data.users.length;
-
-                data.users.forEach(user => {
-                    const row = 
-                        <tr>
-                            <td style="color: #ffcc00; font-weight: bold;">${user.idDisplay}</td>
-                            <td>${user.nom}</td>
-                            <td>${user.email}</td>
-                            <td style="color: white; font-family: monospace;">
-                                ${parseFloat(user.solde).toLocaleString('fr-FR')} XOF
-                            </td>
-                        </tr>
-                    ;
-                    tableBody.innerHTML += row;
-                });
-            } else {
-                alert("Erreur du serveur : " + data.message);
-            }
-        } catch (error) {
-            console.error("Erreur admin:", error);
-            tableBody.innerHTML = "<tr><td colspan='4' style='color:red; text-align:center;'>Erreur de connexion au serveur</td></tr>";
+        if (data.success && data.users.length > 0) {
+            tableBody.innerHTML = ""; 
+            data.users.forEach(user => {
+                tableBody.innerHTML += 
+                    <tr class="user-row">
+                        <td class="text-id">${user.id}</td>
+                        <td class="text-name">${user.nom}</td>
+                        <td><small>${user.email}</small></td>
+                        <td class="text-solde">${parseFloat(user.solde).toLocaleString()} <small>XOF</small></td>
+                    </tr>
+                ;
+            });
         }
+    } catch (error) {
+        tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Erreur de connexion serveur</td></tr>";
     }
+}
 
-    // Charger les données au démarrage
-    window.onload = chargerUtilisateurs;
+// Ajoute l'appel à la fonction au chargement de la page
+window.onload = () => {
+    chargerDonnees();
+    chargerMembresDB();
+};
+
 </script>
 
 </body>
