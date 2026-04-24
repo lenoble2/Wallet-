@@ -27,19 +27,21 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .slider-container {
-            display: flex;
-            width: 300%; /* 3 images = 300% */
-            height: 100%;
-            animation: slide 12s infinite ease-in-out;
-        }
 
-        .slider-container img {
-            width: 33.33%; 
-            height: 100%;
-            object-fit: cover;
-        }
+.slider-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    width: 100%;
+    height: 150px; /* Ajuste selon tes besoins */
+}
 
+.slider-container img {
+    flex: 0 0 100%;
+    width: 100%;
+    object-fit: cover;
+    scroll-snap-align: start;
+}
         @keyframes slide {
             0% { transform: translateX(0%); }
             30% { transform: translateX(0%); }
@@ -49,17 +51,40 @@
             96% { transform: translateX(-66.66%); }
             100% { transform: translateX(0%); }
         }
+/* Le cadre de la bannière */
+/* 1. Le cadre (La fenêtre fixe) */
+.mission-banner {
+    width: 92%;
+    height: 140px;
+    margin: 15px auto;
+    overflow: hidden;     /* INDISPENSABLE pour que le défilement fonctionne */
+    border-radius: 15px;
+    position: relative;
+}
 
-        .banner-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            pointer-events: none;
-        }
+/* 2. Le conteneur (Le ruban qui bouge tout seul) */
+.slider-container {
+    display: flex;
+    width: 300%;          /* Largeur pour 3 images */
+    height: 100%;
+    /* L'ANIMATION CI-DESSOUS ACTIVE LE DÉFILEMENT AUTOMATIQUE */
+    animation: scrollBanner 12s linear infinite; 
+}
 
+/* 3. Les images à l'intérieur */
+.slider-container img {
+    width: 33.333%;      /* Chaque image prend 1/3 du ruban */
+    height: 100%;
+    object-fit: cover;    /* Pour ne pas déformer l'image */
+}
+
+/* 4. L'Animation (Le mouvement) */
+@keyframes scrollBanner {
+    0%, 25% { transform: translateX(0); }             /* Image 1 */
+    33%, 58% { transform: translateX(-33.333%); }     /* Image 2 */
+    66%, 91% { transform: translateX(-66.666%); }     /* Image 3 */
+    100% { transform: translateX(0); }                /* Recommence */
+}
         /* --- STYLE DE L'HISTORIQUE --- */
         .history-section {
             margin: 10px 20px;
@@ -174,20 +199,21 @@
                 <span>Carte</span>
             </a>
         </nav>
-
-        <div class="mission-banner" onclick="location.href='missions.html'">
-            <div class="slider-container">
-                <img src="images/offre1.jpg" alt="Offre 1">
-                <img src="images/offre2.jpg" alt="Offre 2">
-                <img src="images/offre3.jpg" alt="Offre 3">
-            </div>
-            <div class="banner-overlay">
-                <div class="text-content" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">
-                    <h4 style="margin: 0;"></h4>
-                    <p style="margin: 0; font-size: 11px;">Cliquez</p>
-                </div>
-            </div>
+<div class="mission-banner" onclick="location.href='missions.html'">
+    <div class="slider-container">
+ <img src="https://lh3.googleusercontent.com/u/0/d/1SQ_II2GKbvsS1cCjn5BsgHc2zT9RJhgJ" alt="Offre 1">
+                
+        <img src="https://lh3.googleusercontent.com/u/0/d/1H0bVaj_S0stLkjibGSwmUUI3QGWmjAC8" alt="Offre 2">
+        
+        <img src="https://lh3.googleusercontent.com/u/0/d/1_UDNH62YdOBiIywFHmGBRv4TO5qwelf-" alt="Offre 3">
+    </div>
+    <div class="banner-overlay">
+        <div class="text-content" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">
+            <h4 style="margin: 0;">Nos Missions en Isère</h4>
+            <p style="margin: 0; font-size: 11px;">Cliquez pour découvrir</p>
         </div>
+    </div>
+</div>
 
         <div class="history-section">
             <div class="history-title">Activités récentes</div>
