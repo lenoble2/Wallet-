@@ -601,6 +601,49 @@ margin-left: 0px;
   border-radius: 10px;
 }
 
+
+
+.historique-container {
+    background: white;
+    border-radius: 15px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.trans-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.trans-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.trans-date {
+    font-size: 11px;
+    color: #95a5a6;
+}
+
+.trans-amount {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+
     
 </style>
 
@@ -650,41 +693,59 @@ async function chargerDonnees() {
     chargerHistorique(userId);
 }
 
-    async function chargerHistorique(userId) {
-        const container = document.getElementById('liste-transactions');
-        try {
-            const response = await fetch(`${API_BASE}/historique/${userId}`);
-            const data = await response.json();
+async function chargerHistorique(userId) {
+    const container = document.getElementById('liste-transactions');
+    if (!container) return;
 
-            if (data.success && data.transactions && data.transactions.length > 0) {
-                container.innerHTML = ""; 
-                data.transactions.forEach(t => {
-                    const isOut = t.expediteur_id == userId;
-                    const couleur = isOut ? "#e74c3c" : "#2ecc71";
-                    const signe = isOut ? "-" : "+";
-                    const nomAffiche = isOut ? "Vers: " + t.destinataire : "De: " + t.expediteur;
-                    
-                    container.innerHTML += `
-                        <div class="transaction-item">
-                            <div class="trans-info">
-                                <span class="trans-name">${nomAffiche}</span>
-                                <span class="trans-date">${new Date(t.date).toLocaleDateString()}</span>
-                            </div>
-                            <div class="trans-amount" style="color: ${couleur};">
-                                ${signe}${t.montant} XOF
-                            </div>
-                        </div>
-                    `;
+    try {
+        // On s'assure d'utiliser l'ID propre (sans 08000 pour la comparaison)
+        const cleanId = userId.toString().replace("08000", "");
+        
+        const response = await fetch(`${API_BASE}/historique/${cleanId}`);
+        const data = await response.json();
+
+        if (data.success && data.transactions && data.transactions.length > 0) {
+            container.innerHTML = ""; // On vide le message "Chargement..."
+            
+            data.transactions.forEach(t => {
+                // On compare avec l'ID nettoyé pour savoir si c'est un débit ou crédit
+                const isOut = t.expediteur_id == cleanId;
+                const couleur = isOut ? "#e74c3c" : "#2ecc71"; // Rouge si sortie, Vert si entrée
+                const signe = isOut ? "-" : "+";
+                
+                // Déterminer le libellé à afficher
+                const nomAffiche = isOut ? `Vers: ${t.destinataire_id}` : `De: ${t.expediteur_id}`;
+                const dateAffiche = new Date(t.date).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
-            } else {
-                container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité.</p>";
-            }
-        } catch (error) {
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique indisponible.</p>";
+
+                container.innerHTML += `
+                    <div class="transaction-item">
+                        <div class="trans-info">
+                            <span class="trans-name">${nomAffiche}</span>
+                            <span class="trans-date">${dateAffiche}</span>
+                        </div>
+                        <div class="trans-amount" style="color: ${couleur};">
+                            ${signe}${t.montant} XOF
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune transaction trouvée.</p>";
         }
+    } catch (error) {
+        console.error("Erreur historique:", error);
+        container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique indisponible.</p>";
     }
+}
+
 
     window.onload = chargerDonnees;
 </script>
+
 </body>
 </html>

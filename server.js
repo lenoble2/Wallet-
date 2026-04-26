@@ -139,6 +139,27 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
     });
 });
 
+// --- CRÉATION DE LA TABLE (à mettre après db.connect) ---
+const sqlCreateTable = `
+CREATE TABLE IF NOT EXISTS transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    expediteur_id VARCHAR(50),
+    destinataire_id VARCHAR(50),
+    montant DECIMAL(10, 2),
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`;
+
+db.query(sqlCreateTable, (err) => {
+    if (err) {
+        console.error("Erreur création table:", err);
+    } else {
+        console.log("✅ Table 'transactions' prête !");
+    }
+});
+
+
+
+
 
 // ROUT TRANSFERT
 // --- ROUTE 3 : TRANSFERT (Votre formule appliquée ici) ---
@@ -195,6 +216,29 @@ app.get('/api/admin/utilisateurs', (req, res) => {
         }));
 
         res.json({ success: true, users: usersFormatted });
+    });
+});
+
+// --- ROUTE HISTORIQUE ---
+app.get('/api/historique/:id', (req, res) => {
+    // 1. On nettoie l'ID reçu (ex: 080002 devient 2)
+    const userId = req.params.id.toString().replace("08000", "");
+
+    // 2. La requête SQL (BIEN ENTROURÉE DE GUILLEMETS ` `)
+    const sql = `
+        SELECT * FROM transactions 
+        WHERE expediteur_id = ? OR destinataire_id = ? 
+        ORDER BY date DESC LIMIT 10`;
+
+    // 3. Exécution de la requête
+    db.query(sql, [userId, userId], (err, results) => {
+        if (err) {
+            console.error("Erreur SQL historique:", err);
+            return res.status(500).json({ success: false, message: "Erreur lors de la récupération" });
+        }
+        
+        // On renvoie les résultats au dashboard
+        res.json({ success: true, transactions: results });
     });
 });
 
