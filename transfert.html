@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Effectuer un transfert - Lean Wallet</title>
     <style>
-        /* Un peu de style pour correspondre à votre capture */
         body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h2 { text-align: center; margin-bottom: 25px; }
+        h2 { text-align: center; margin-bottom: 25px; color: #333; }
         .group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
         input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:active { background-color: #0056b3; }
-        #message { margin-top: 15px; text-align: center; font-size: 14px; }
+        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #message { margin-top: 15px; text-align: center; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -24,7 +23,7 @@
 
     <div class="group">
         <label>ID du destinataire</label>
-        <input type="text" id="dest" placeholder="Ex: 0800015 ou 15">
+        <input type="text" id="dest" placeholder="Ex: 2 ou 080002">
     </div>
 
     <div class="group">
@@ -32,9 +31,8 @@
         <input type="number" id="montant" placeholder="Somme à envoyer">
     </div>
 
-    <div class="group">
-        <label>Code PIN</label>
-        <input type="password" id="pin" maxlength="4" placeholder="Votre code secret">
+    <div class="group" style="display:none;"> <label>Code PIN</label>
+        <input type="password" id="pin" maxlength="4" value="0000">
     </div>
 
     <button id="btnEnvoyer">Envoyer l'argent</button>
@@ -44,66 +42,72 @@
 
 <script>
 document.getElementById('btnEnvoyer').addEventListener('click', async () => {
-    alert("Le bouton a été cliqué !"); // <--- AJOUTEZ CECI
     const messageDiv = document.getElementById('message');
-    // ... reste du code
+    
+    // 1. Récupérer les données
+    // On s'assure que les IDs sont traités comme des chaînes pour le .replace()
+    const rawExpediteur = localStorage.getItem('userId') || "";
+    const rawDestinataire = document.getElementById('dest').value;
+    const montantSaisi = document.getElementById('montant').value;
 
-        // 1. Récupérer les données du formulaire
-        const data = {
-            // On récupère l'ID de l'expéditeur stocké lors de la connexion (ex: localStorage)
-            expediteurId: localStorage.getItem('userId'), 
-            dest: document.getElementById('dest').value,
-            montant: document.getElementById('montant').value,
-            pin: document.getElementById('pin').value
-        };
+    // 2. Nettoyage (votre formule "clean")
+    const cleanSenderId = rawExpediteur.toString().replace("08000", "");
+    const cleanReceiverId = rawDestinataire.toString().replace("08000", "");
 
-        // 2. Vérification rapide avant envoi
-        if (!data.dest  !data.montant  !data.pin) {
-            messageDiv.style.color = "red";
-            messageDiv.innerText = "Veuillez remplir tous les champs.";
-            return;
-        }
+    // 3. Vérifications de base
+    if (!cleanReceiverId || !montantSaisi) {
+        messageDiv.style.color = "red";
+        messageDiv.innerText = "Veuillez remplir le destinataire et le montant.";
+        return;
+    }
 
-        if (!data.expediteurId) {
-            messageDiv.style.color = "red";
-            messageDiv.innerText = "Erreur : Session expirée. Reconnectez-vous.";
-            return;
-        }
+    if (!cleanSenderId) {
+        messageDiv.style.color = "red";
+        messageDiv.innerText = "Erreur : Session expirée. Reconnectez-vous.";
+        return;
+    }
 
-        messageDiv.style.color = "blue";
-        messageDiv.innerText = "Traitement en cours...";
+    messageDiv.style.color = "blue";
+    messageDiv.innerText = "Transfert en cours...";
 
-        try {
-            // 3. Envoi au serveur
-            const response = await fetch('/api/transfert', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
+    try {
+        // 4. Appel de l'API de test_local.js
+        const response = await fetch('/api/transfert-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id_expediteur: cleanSenderId,
+                id_destinataire: cleanReceiverId,
+                montant: montantSaisi
+            })
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            // 4. Gestion de la réponse
-            if (result.success) {
-                messageDiv.style.color = "green";
-                messageDiv.innerText = "✅ " + result.message;
-                // Optionnel : Rediriger ou vider les champs après un succès
+        // 5. Affichage du résultat
+        if (result.success) {
+            messageDiv.style.color = "green";
+            messageDiv.innerText = "✅ " + result.message;
+            
+            // Vider les champs après 2 secondes
+            setTimeout(() => {
                 document.getElementById('dest').value = '';
                 document.getElementById('montant').value = '';
-                document.getElementById('pin').value = '';
-            } else {
-                messageDiv.style.color = "red";
-                messageDiv.innerText = "❌ " + result.message;
-            }
-
-        } catch (error) {
-            console.error("Erreur:", error);
+                messageDiv.innerText = "";
+            }, 3000);
+        } else {
             messageDiv.style.color = "red";
-            messageDiv.innerText = "Erreur de connexion au serveur.";
+            messageDiv.innerText = "❌ " + result.message;
         }
-    });
+
+} catch (error) {
+        console.error("Erreur:", error);
+        messageDiv.style.color = "red";
+        messageDiv.innerText = "Erreur de connexion au serveur local.";
+    }
+});
 </script>
 
 </body>
