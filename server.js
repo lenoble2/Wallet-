@@ -141,48 +141,41 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
 
 
 // ROUT TRANSFERT
+// --- ROUTE 3 : TRANSFERT (Votre formule appliquée ici) ---
+app.post('/api/transfert-test', (req, res) => {
+    const { id_expediteur, id_destinataire, montant } = req.body;
+    const somme = parseFloat(montant);
 
-app.post('/api/transfert', (req, res) => {
-    const { expediteurId, dest, montant, pin } = req.body;
-    const montantNum = parseFloat(montant);
-    const idDestinataire = dest.replace("08000", "");
+    // Application de la formule de nettoyage
+    const cleanSenderId = id_expediteur.toString().replace("08000", "");
+    const cleanReceiverId = id_destinataire.toString().replace("08000", "");
 
-    db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false, message: "Erreur serveur" });
+    if (!cleanSenderId || !cleanReceiverId || isNaN(somme) || somme <= 0) {
+        return res.json({ success: false, message: "Donnees invalides" });
+    }
 
-        // 1. Vérifier l'expéditeur (Solde et PIN)
-        db.query('SELECT solde, pin FROM utilisateurs WHERE id = ?', [expediteurId], (err, results) => {
-            if (err || results.length === 0) {
-                return db.rollback(() => res.json({ success: false, message: "Expéditeur introuvable" }));
-            }
+    // 1. Verifier l'expediteur
+    db.query('SELECT solde FROM utilisateurs WHERE id = ?', [cleanSenderId], (err, results) => {
+        if (err || results.length === 0) return res.json({ success: false, message: 'Expediteur introuvable' });
 
-            const user = results[0];
-            if (user.pin !== pin) {
-                return db.rollback(() => res.json({ success: false, message: "Code PIN incorrect" }));
-            }
-            if (user.solde < montantNum) {
-                return db.rollback(() => res.json({ success: false, message: "Solde insuffisant" }));
-            }
+        const soldeExp = results[0].solde;
+        if (soldeExp < somme) return res.json({ success: false, message: 'Solde insuffisant' });
 
-            // 2. Débiter l'expéditeur
-            db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [montantNum, expediteurId], (err) => {
-                if (err) return db.rollback(() => res.json({ success: false, message: "Erreur débit" }));
+        // 2. Debit expediteur
+        db.query('UPDATE utilisateurs SET solde = solde - ? WHERE id = ?', [somme, cleanSenderId], (err) => {
+            if (err) return res.json({ success: false, message: 'Erreur debit' });
 
-                // 3. Créditer le destinataire
-                db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [montantNum, idDestinataire], (err, result) => {
-                    if (err || result.affectedRows === 0) {
-                        return db.rollback(() => res.json({ success: false, message: "Destinataire inconnu" }));
-                    }
-
-                    // 4. Valider définitivement
-                    db.commit((err) => {
-                        if (err) return db.rollback(() => res.json({ success: false }));
-                        res.json({ success: true, message: "Transfert effectué !" });
-                    });
-                }); 
-            }); 
-        }); 
-    }); 
+            // 3. Credit destinataire
+            db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [somme, cleanReceiverId], (err, resultDest) => {
+                if (err || resultDest.affectedRows === 0) {
+                    // Remboursement si echec
+                    db.query('UPDATE utilisateurs SET solde = solde + ? WHERE id = ?', [somme, cleanSenderId]);
+                    return res.json({ success: false, message: 'Destinataire introuvable' });
+                }
+                res.json({ success: true, message: `Transfert de ${somme} XOF reussi vers l'ID ${cleanReceiverId} !` });
+            });
+        });
+    });
 });
 
 // Route pour récupérer tous les utilisateurs (Admin)
@@ -204,6 +197,7 @@ app.get('/api/admin/utilisateurs', (req, res) => {
         res.json({ success: true, users: usersFormatted });
     });
 });
+
 
 // Lancement du serveur
 const PORT = process.env.PORT || 3000;
