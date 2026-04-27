@@ -649,23 +649,20 @@ margin-left: 0px;
 
 <script>
 async function chargerDonnees() {
-    // 1. Récupération de l'ID (on essaie les deux noms de clés possibles)
+    // 1. Récupération de l'ID complet (doit être 08000x dans le localStorage)
     let userId = localStorage.getItem('user_id_test') || localStorage.getItem('userId');
-    
+
     if (!userId || userId === "undefined") {
         console.error("Aucun ID trouvé dans le stockage local");
         return;
     }
 
-    // Nettoyage de l'ID pour l'affichage
-    userId = userId.toString().replace("08000", "");
-
-    // 2. Affichage de l'ID formaté
+    // 2. Affichage de l'ID (Plus besoin de rajouter "08000" manuellement car il est déjà dans userId)
     const displayId = document.getElementById('user-id-display');
-    if (displayId) displayId.textContent = "ID: 08000" + userId;
+    if (displayId) displayId.textContent = "ID: " + userId;
 
     try {
-        // 3. Appel de la route API avec des BACKTICKS (touche 7)
+        // 3. Appel de la route API avec l'ID COMPLET (08000x)
         const response = await fetch(`/api/utilisateur/${userId}`);
         const data = await response.json();
 
@@ -679,12 +676,12 @@ async function chargerDonnees() {
                     maximumFractionDigits: 2
                 }) + " XOF";
             }
-            
-            // Charger l'historique
+
+            // Charger l'historique avec l'ID COMPLET
             chargerHistorique(userId);
         }
     } catch (error) {
-        console.error("Erreur de chargement des données");
+        console.error("Erreur de chargement des données:", error);
     }
 }
 
@@ -697,49 +694,43 @@ async function chargerHistorique(userId) {
         const data = await res.json();
 
         if (data.success && data.transactions.length > 0) {
-            container.innerHTML = ""; // On enlève le message "Chargement..."
-
+            container.innerHTML = "";
+            
             data.transactions.forEach(t => {
-                // On détermine si c'est de l'argent envoyé ou reçu
-
-		 const isOut = String(t.expediteur_id) === String(userId);
+                // On compare l'ID complet (ex: 080005 == 080005)
+                const isOut = String(t.expediteur_id) === String(userId);
+                
                 const classe = isOut ? "montant-neg" : "montant-pos";
                 const signe = isOut ? "-" : "+";
-                const libelle = isOut ? `Vers ID: 08000${t.destinataire_id}` : `De ID: 08000${t.expediteur_id}`;
-                
-                // On formate la date proprement
-                const dateTrans = new Date(t.date).toLocaleString('fr-FR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                const couleur = isOut ? "#e74c3c" : "#2ecc71"; // Rouge ou Vert
 
-                // On ajoute la ligne au container
+                const libelle = isOut 
+                    ? `Vers ID: ${t.destinataire_id}` 
+                    : `De ID: ${t.expediteur_id}`;
+
                 container.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f0f0f0;">
                         <div>
-                            <strong style="font-size: 14px;">${libelle}</strong><br>
-                            <small style="color: gray;">${dateTrans}</small>
+                            <strong>${libelle}</strong><br>
+                            <small style="color: gray;">${new Date(t.date).toLocaleString('fr-FR')}</small>
                         </div>
-                        <div class="${classe}" style="font-weight: bold; color: ${isOut ? 'red' : 'green'};">
+                        <div style="font-weight: bold; color: ${couleur};">
                             ${signe}${t.montant} XOF
                         </div>
                     </div>
                 `;
             });
         } else {
-            container.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Aucune transaction pour le moment.</p>';
+            container.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Aucune activité.</p>';
         }
     } catch (err) {
-        console.error("Erreur historique:", err);
-        container.innerHTML = '<p style="text-align:center; color:red;">Erreur de chargement de l\'historique.</p>';
+        container.innerHTML = '<p style="text-align:center; color:red;">Erreur de connexion.</p>';
     }
 }
 
 
 window.onload = chargerDonnees;
+
 </script>
 </body>
 </html>
