@@ -1,0 +1,110 @@
+0 verbose cli /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/npm
+1 info using npm@11.12.1
+2 info using node@v25.8.2
+3 silly config load:file:/data/data/com.termux/files/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/data/data/com.termux/files/home/.npmrc
+5 silly config load:file:/data/data/com.termux/files/usr/etc/npmrc
+6 verbose title npm install cors
+7 verbose argv "install" "cors"
+8 verbose logfile logs-max:10 dir:/data/data/com.termux/files/home/.npm/_logs/2026-04-25T00_31_03_312Z-
+9 verbose logfile /data/data/com.termux/files/home/.npm/_logs/2026-04-25T00_31_03_312Z-debug-0.log
+10 silly logfile done cleaning log files
+11 silly packumentCache heap:555483136 maxSize:138870784 maxEntrySize:69435392
+12 silly idealTree buildDeps
+13 silly fetch manifest cors@^2.8.6
+14 silly packumentCache full:https://registry.npmjs.org/cors cache-miss
+15 http fetch GET 200 https://registry.npmjs.org/cors 1735ms (cache revalidated)
+16 silly packumentCache full:https://registry.npmjs.org/cors set size:77956 disposed:false
+17 silly placeDep ROOT cors@2.8.6 REPLACE for: lean2@1.0.0 want: ^2.8.6
+18 silly reify moves {}
+19 silly audit bulk request {
+19 silly audit   '@types/node': [ '25.6.0' ],
+19 silly audit   accepts: [ '1.3.8' ],
+19 silly audit   'array-flatten': [ '1.1.1' ],
+19 silly audit   'aws-ssl-profiles': [ '1.1.2' ],
+19 silly audit   'body-parser': [ '1.20.4' ],
+19 silly audit   'iconv-lite': [ '0.4.24', '0.7.2' ],
+19 silly audit   bytes: [ '3.1.2' ],
+19 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+19 silly audit   'call-bound': [ '1.0.4' ],
+19 silly audit   'content-disposition': [ '0.5.4' ],
+19 silly audit   'content-type': [ '1.0.5' ],
+19 silly audit   cookie: [ '0.7.2' ],
+19 silly audit   'cookie-signature': [ '1.0.7' ],
+19 silly audit   debug: [ '2.6.9' ],
+19 silly audit   denque: [ '2.1.0' ],
+19 silly audit   depd: [ '2.0.0' ],
+19 silly audit   destroy: [ '1.2.0' ],
+19 silly audit   dotenv: [ '16.6.1' ],
+19 silly audit   'dunder-proto': [ '1.0.1' ],
+19 silly audit   'ee-first': [ '1.1.1' ],
+19 silly audit   encodeurl: [ '2.0.0' ],
+19 silly audit   'es-define-property': [ '1.0.1' ],
+19 silly audit   'es-errors': [ '1.3.0' ],
+19 silly audit   'es-object-atoms': [ '1.1.1' ],
+19 silly audit   'escape-html': [ '1.0.3' ],
+19 silly audit   etag: [ '1.8.1' ],
+19 silly audit   express: [ '4.22.1' ],
+19 silly audit   finalhandler: [ '1.3.2' ],
+19 silly audit   forwarded: [ '0.2.0' ],
+19 silly audit   fresh: [ '0.5.2' ],
+19 silly audit   'function-bind': [ '1.1.2' ],
+19 silly audit   'generate-function': [ '2.3.1' ],
+19 silly audit   'get-intrinsic': [ '1.3.0' ],
+19 silly audit   'get-proto': [ '1.0.1' ],
+19 silly audit   gopd: [ '1.2.0' ],
+19 silly audit   'has-symbols': [ '1.1.0' ],
+19 silly audit   hasown: [ '2.0.3' ],
+19 silly audit   'http-errors': [ '2.0.1' ],
+19 silly audit   inherits: [ '2.0.4' ],
+19 silly audit   'ipaddr.js': [ '1.9.1' ],
+19 silly audit   'is-property': [ '1.0.2' ],
+19 silly audit   long: [ '5.3.2' ],
+19 silly audit   'lru.min': [ '1.1.4' ],
+19 silly audit   'math-intrinsics': [ '1.1.0' ],
+19 silly audit   'media-typer': [ '0.3.0' ],
+19 silly audit   'merge-descriptors': [ '1.0.3' ],
+19 silly audit   methods: [ '1.1.2' ],
+19 silly audit   mime: [ '1.6.0' ],
+19 silly audit   'mime-db': [ '1.52.0' ],
+19 silly audit   'mime-types': [ '2.1.35' ],
+19 silly audit   ms: [ '2.0.0', '2.1.3' ],
+19 silly audit   mysql2: [ '3.22.1' ],
+19 silly audit   'named-placeholders': [ '1.1.6' ],
+19 silly audit   negotiator: [ '0.6.3' ],
+19 silly audit   'object-assign': [ '4.1.1' ],
+19 silly audit   'object-inspect': [ '1.13.4' ],
+19 silly audit   'on-finished': [ '2.4.1' ],
+19 silly audit   parseurl: [ '1.3.3' ],
+19 silly audit   'path-to-regexp': [ '0.1.13' ],
+19 silly audit   'proxy-addr': [ '2.0.7' ],
+19 silly audit   qs: [ '6.14.2' ],
+19 silly audit   'range-parser': [ '1.2.1' ],
+19 silly audit   'raw-body': [ '2.5.3' ],
+19 silly audit   'safe-buffer': [ '5.2.1' ],
+19 silly audit   'safer-buffer': [ '2.1.2' ],
+19 silly audit   send: [ '0.19.2' ],
+19 silly audit   'serve-static': [ '1.16.3' ],
+19 silly audit   setprototypeof: [ '1.2.0' ],
+19 silly audit   'side-channel': [ '1.1.0' ],
+19 silly audit   'side-channel-list': [ '1.0.1' ],
+19 silly audit   'side-channel-map': [ '1.0.1' ],
+19 silly audit   'side-channel-weakmap': [ '1.0.2' ],
+19 silly audit   'sql-escaper': [ '1.3.3' ],
+19 silly audit   statuses: [ '2.0.2' ],
+19 silly audit   toidentifier: [ '1.0.1' ],
+19 silly audit   'type-is': [ '1.6.18' ],
+19 silly audit   'undici-types': [ '7.19.2' ],
+19 silly audit   unpipe: [ '1.0.0' ],
+19 silly audit   'utils-merge': [ '1.0.1' ],
+19 silly audit   vary: [ '1.1.2' ],
+19 silly audit   cors: [ '2.8.6' ]
+19 silly audit }
+20 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 1694ms
+21 silly audit report {}
+22 verbose cwd /data/data/com.termux/files/home
+23 verbose os Linux 4.19.191-g4465035f2907-dirty
+24 verbose node v25.8.2
+25 verbose npm  v11.12.1
+26 verbose exit 0
+27 info ok

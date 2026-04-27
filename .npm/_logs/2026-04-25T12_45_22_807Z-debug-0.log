@@ -1,0 +1,172 @@
+0 verbose cli /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/npm
+1 info using npm@11.12.1
+2 info using node@v25.8.2
+3 silly config load:file:/data/data/com.termux/files/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/data/data/com.termux/files/home/.npmrc
+5 silly config load:file:/data/data/com.termux/files/usr/etc/npmrc
+6 verbose title npm install express mysql2 cors express-session
+7 verbose argv "install" "express" "mysql2" "cors" "express-session"
+8 verbose logfile logs-max:10 dir:/data/data/com.termux/files/home/.npm/_logs/2026-04-25T12_45_22_807Z-
+9 verbose logfile /data/data/com.termux/files/home/.npm/_logs/2026-04-25T12_45_22_807Z-debug-0.log
+10 silly logfile start cleaning logs, removing 1 files
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:555483136 maxSize:138870784 maxEntrySize:69435392
+13 silly idealTree buildDeps
+14 silly fetch manifest cors@^2.8.6
+15 silly packumentCache full:https://registry.npmjs.org/cors cache-miss
+16 http fetch GET 200 https://registry.npmjs.org/cors 1818ms (cache revalidated)
+17 silly packumentCache full:https://registry.npmjs.org/cors set size:77956 disposed:false
+18 silly fetch manifest express@^4.18.2
+19 silly packumentCache full:https://registry.npmjs.org/express cache-miss
+20 http fetch GET 200 https://registry.npmjs.org/express 460ms (cache revalidated)
+21 silly packumentCache full:https://registry.npmjs.org/express set size:801278 disposed:false
+22 silly fetch manifest mysql2@^3.6.0
+23 silly packumentCache full:https://registry.npmjs.org/mysql2 cache-miss
+24 http fetch GET 200 https://registry.npmjs.org/mysql2 969ms (cache updated)
+25 silly packumentCache full:https://registry.npmjs.org/mysql2 set size:undefined disposed:false
+26 silly fetch manifest @types/node@>= 8
+27 silly packumentCache full:https://registry.npmjs.org/@types%2fnode cache-miss
+28 http fetch GET 200 https://registry.npmjs.org/@types%2fnode 1137ms (cache revalidated)
+29 silly packumentCache full:https://registry.npmjs.org/@types%2fnode set size:10972342 disposed:false
+30 silly fetch manifest express-session@*
+31 silly packumentCache full:https://registry.npmjs.org/express-session cache-miss
+32 http fetch GET 200 https://registry.npmjs.org/express-session 872ms (cache miss)
+33 silly packumentCache full:https://registry.npmjs.org/express-session set size:undefined disposed:false
+34 silly placeDep ROOT cors@2.8.6 REPLACE for: lean2@1.0.0 want: ^2.8.6
+35 silly placeDep ROOT express@4.22.1 REPLACE for: lean2@1.0.0 want: ^4.18.2
+36 silly placeDep ROOT express-session@1.19.0 OK for: lean2@1.0.0 want: *
+37 silly placeDep ROOT mysql2@3.22.2 REPLACE for: lean2@1.0.0 want: ^3.6.0
+38 silly fetch manifest on-headers@~1.1.0
+39 silly packumentCache full:https://registry.npmjs.org/on-headers cache-miss
+40 http fetch GET 200 https://registry.npmjs.org/on-headers 521ms (cache miss)
+41 silly packumentCache full:https://registry.npmjs.org/on-headers set size:undefined disposed:false
+42 silly fetch manifest uid-safe@~2.1.5
+43 silly packumentCache full:https://registry.npmjs.org/uid-safe cache-miss
+44 http fetch GET 200 https://registry.npmjs.org/uid-safe 409ms (cache miss)
+45 silly packumentCache full:https://registry.npmjs.org/uid-safe set size:undefined disposed:false
+46 silly placeDep ROOT on-headers@1.1.0 OK for: express-session@1.19.0 want: ~1.1.0
+47 silly placeDep ROOT uid-safe@2.1.5 OK for: express-session@1.19.0 want: ~2.1.5
+48 silly fetch manifest random-bytes@~1.0.0
+49 silly packumentCache full:https://registry.npmjs.org/random-bytes cache-miss
+50 http fetch GET 200 https://registry.npmjs.org/random-bytes 468ms (cache miss)
+51 silly packumentCache full:https://registry.npmjs.org/random-bytes set size:undefined disposed:false
+52 silly placeDep ROOT random-bytes@1.0.0 OK for: uid-safe@2.1.5 want: ~1.0.0
+53 silly reify mark retired [ '/data/data/com.termux/files/home/node_modules/mysql2' ]
+54 silly reify moves {
+54 silly reify   '/data/data/com.termux/files/home/node_modules/mysql2': '/data/data/com.termux/files/home/node_modules/.mysql2-n9cBOok6'
+54 silly reify }
+55 silly audit bulk request {
+55 silly audit   '@types/node': [ '25.6.0' ],
+55 silly audit   accepts: [ '1.3.8' ],
+55 silly audit   'array-flatten': [ '1.1.1' ],
+55 silly audit   'aws-ssl-profiles': [ '1.1.2' ],
+55 silly audit   'body-parser': [ '1.20.4' ],
+55 silly audit   'iconv-lite': [ '0.4.24', '0.7.2' ],
+55 silly audit   bytes: [ '3.1.2' ],
+55 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+55 silly audit   'call-bound': [ '1.0.4' ],
+55 silly audit   'content-disposition': [ '0.5.4' ],
+55 silly audit   'content-type': [ '1.0.5' ],
+55 silly audit   cookie: [ '0.7.2' ],
+55 silly audit   'cookie-signature': [ '1.0.7' ],
+55 silly audit   debug: [ '2.6.9' ],
+55 silly audit   denque: [ '2.1.0' ],
+55 silly audit   depd: [ '2.0.0' ],
+55 silly audit   destroy: [ '1.2.0' ],
+55 silly audit   dotenv: [ '16.6.1' ],
+55 silly audit   'dunder-proto': [ '1.0.1' ],
+55 silly audit   'ee-first': [ '1.1.1' ],
+55 silly audit   encodeurl: [ '2.0.0' ],
+55 silly audit   'es-define-property': [ '1.0.1' ],
+55 silly audit   'es-errors': [ '1.3.0' ],
+55 silly audit   'es-object-atoms': [ '1.1.1' ],
+55 silly audit   'escape-html': [ '1.0.3' ],
+55 silly audit   etag: [ '1.8.1' ],
+55 silly audit   finalhandler: [ '1.3.2' ],
+55 silly audit   forwarded: [ '0.2.0' ],
+55 silly audit   fresh: [ '0.5.2' ],
+55 silly audit   'function-bind': [ '1.1.2' ],
+55 silly audit   'generate-function': [ '2.3.1' ],
+55 silly audit   'get-intrinsic': [ '1.3.0' ],
+55 silly audit   'get-proto': [ '1.0.1' ],
+55 silly audit   gopd: [ '1.2.0' ],
+55 silly audit   'has-symbols': [ '1.1.0' ],
+55 silly audit   hasown: [ '2.0.3' ],
+55 silly audit   'http-errors': [ '2.0.1' ],
+55 silly audit   inherits: [ '2.0.4' ],
+55 silly audit   'ipaddr.js': [ '1.9.1' ],
+55 silly audit   'is-property': [ '1.0.2' ],
+55 silly audit   long: [ '5.3.2' ],
+55 silly audit   'lru.min': [ '1.1.4' ],
+55 silly audit   'math-intrinsics': [ '1.1.0' ],
+55 silly audit   'media-typer': [ '0.3.0' ],
+55 silly audit   'merge-descriptors': [ '1.0.3' ],
+55 silly audit   methods: [ '1.1.2' ],
+55 silly audit   mime: [ '1.6.0' ],
+55 silly audit   'mime-db': [ '1.52.0' ],
+55 silly audit   'mime-types': [ '2.1.35' ],
+55 silly audit   ms: [ '2.0.0', '2.1.3' ],
+55 silly audit   'named-placeholders': [ '1.1.6' ],
+55 silly audit   negotiator: [ '0.6.3' ],
+55 silly audit   'object-assign': [ '4.1.1' ],
+55 silly audit   'object-inspect': [ '1.13.4' ],
+55 silly audit   'on-finished': [ '2.4.1' ],
+55 silly audit   parseurl: [ '1.3.3' ],
+55 silly audit   'path-to-regexp': [ '0.1.13' ],
+55 silly audit   'proxy-addr': [ '2.0.7' ],
+55 silly audit   qs: [ '6.14.2' ],
+55 silly audit   'range-parser': [ '1.2.1' ],
+55 silly audit   'raw-body': [ '2.5.3' ],
+55 silly audit   'safe-buffer': [ '5.2.1' ],
+55 silly audit   'safer-buffer': [ '2.1.2' ],
+55 silly audit   send: [ '0.19.2' ],
+55 silly audit   'serve-static': [ '1.16.3' ],
+55 silly audit   setprototypeof: [ '1.2.0' ],
+55 silly audit   'side-channel': [ '1.1.0' ],
+55 silly audit   'side-channel-list': [ '1.0.1' ],
+55 silly audit   'side-channel-map': [ '1.0.1' ],
+55 silly audit   'side-channel-weakmap': [ '1.0.2' ],
+55 silly audit   'sql-escaper': [ '1.3.3' ],
+55 silly audit   statuses: [ '2.0.2' ],
+55 silly audit   toidentifier: [ '1.0.1' ],
+55 silly audit   'type-is': [ '1.6.18' ],
+55 silly audit   'undici-types': [ '7.19.2' ],
+55 silly audit   unpipe: [ '1.0.0' ],
+55 silly audit   'utils-merge': [ '1.0.1' ],
+55 silly audit   vary: [ '1.1.2' ],
+55 silly audit   cors: [ '2.8.6' ],
+55 silly audit   express: [ '4.22.1' ],
+55 silly audit   'express-session': [ '1.19.0' ],
+55 silly audit   mysql2: [ '3.22.2' ],
+55 silly audit   'on-headers': [ '1.1.0' ],
+55 silly audit   'uid-safe': [ '2.1.5' ],
+55 silly audit   'random-bytes': [ '1.0.0' ]
+55 silly audit }
+56 http cache random-bytes@https://registry.npmjs.org/random-bytes/-/random-bytes-1.0.0.tgz 0ms (cache hit)
+57 http cache uid-safe@https://registry.npmjs.org/uid-safe/-/uid-safe-2.1.5.tgz 1ms (cache hit)
+58 http cache on-headers@https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz 1ms (cache hit)
+59 http cache express-session@https://registry.npmjs.org/express-session/-/express-session-1.19.0.tgz 1ms (cache hit)
+60 http cache mysql2@https://registry.npmjs.org/mysql2/-/mysql2-3.22.2.tgz 1ms (cache hit)
+61 silly tarball no local data for random-bytes@https://registry.npmjs.org/random-bytes/-/random-bytes-1.0.0.tgz. Extracting by manifest.
+62 silly tarball no local data for uid-safe@https://registry.npmjs.org/uid-safe/-/uid-safe-2.1.5.tgz. Extracting by manifest.
+63 silly tarball no local data for on-headers@https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz. Extracting by manifest.
+64 silly tarball no local data for express-session@https://registry.npmjs.org/express-session/-/express-session-1.19.0.tgz. Extracting by manifest.
+65 silly tarball no local data for mysql2@https://registry.npmjs.org/mysql2/-/mysql2-3.22.2.tgz. Extracting by manifest.
+66 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 793ms
+67 silly audit report {}
+68 http fetch GET 200 https://registry.npmjs.org/random-bytes/-/random-bytes-1.0.0.tgz 1154ms (cache miss)
+69 http fetch GET 200 https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz 1126ms (cache miss)
+70 http fetch GET 200 https://registry.npmjs.org/express-session/-/express-session-1.19.0.tgz 1218ms (cache miss)
+71 http fetch GET 200 https://registry.npmjs.org/uid-safe/-/uid-safe-2.1.5.tgz 1459ms (cache miss)
+72 http fetch GET 200 https://registry.npmjs.org/mysql2/-/mysql2-3.22.2.tgz 2559ms (cache miss)
+73 silly ADD node_modules/random-bytes
+74 silly ADD node_modules/uid-safe
+75 silly ADD node_modules/on-headers
+76 silly ADD node_modules/express-session
+77 silly CHANGE node_modules/mysql2
+78 verbose cwd /data/data/com.termux/files/home
+79 verbose os Linux 4.19.191-g4465035f2907-dirty
+80 verbose node v25.8.2
+81 verbose npm  v11.12.1
+82 verbose exit 0
+83 info ok

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test ID Court - Lean Wallet</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f9; padding: 20px; }
+        .carreau { background: white; border-radius: 10px; padding: 20px; margin: 10px; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:active { background: #0056b3; }
+        
+        .item-trans { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .trans-info { font-size: 0.9em; color: #555; }
+        .montant-pos { color: #2ecc71; font-weight: bold; }
+        .montant-neg { color: #e74c3c; font-weight: bold; }
+        h2 { color: #333; }
+        h3 { margin-top: 0; color: #555; border-bottom: 2px solid #007bff; display: inline-block; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Lean Wallet - Test Rapide</h2>
+
+    <div class="carreau">
+        <h3>Connexion</h3>
+        <input type="text" id="mon_id" placeholder="Votre ID (ex: 1)">
+        <button onclick="testerConnexion()">Se connecter</button>
+    </div>
+
+    <div class="carreau">
+        <h3>Transfert</h3>
+        <input type="text" id="id_dest" placeholder="ID Destinataire (ex: 2)">
+        <input type="number" id="somme" placeholder="Montant en XOF">
+        <button onclick="effectuerTransfert()">Envoyer l'argent</button>
+    </div>
+
+    <div class="carreau">
+        <h3>Activités récentes</h3>
+        <div id="liste-historique">
+            <p style="text-align:center; color:gray;">Connectez-vous pour voir l'historique</p>
+        </div>
+    </div>
+
+    <script>
+        // Au chargement : on vérifie si un utilisateur est déjà "connecté" localement
+        window.onload = () => {
+            const savedId = localStorage.getItem('user_id_test');
+            if (savedId) {
+                document.getElementById('mon_id').value = savedId;
+                chargerHistorique(savedId);
+            }
+        };
+
+        // Fonction pour se connecter
+        async function testerConnexion() {
+            const val = document.getElementById('mon_id').value;
+            if(!val) return alert("Veuillez entrer un ID");
+
+            try {
+                const res = await fetch('/api/login-test', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id_client: val })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('user_id_test', val);
+                    alert("Connexion réussie !");
+                    location.reload(); // Recharge pour afficher l'historique
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("Erreur de connexion au serveur");
+            }
+        }
+
+        // Fonction pour envoyer de l'argent
+        async function effectuerTransfert() {
+            const exp = document.getElementById('mon_id').value;
+            const dest = document.getElementById('id_dest').value; // ID Corrigé
+            const montant = document.getElementById('somme').value;
+
+            if(!exp || !dest || !montant) return alert("Veuillez remplir tous les champs");
+
+            try {
+                const res = await fetch('/api/transfert-test', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        id_expediteur: exp, 
+                        id_destinataire: dest, 
+                        montant: montant 
+                    })
+                });
+                const data = await res.json();
+                
+                alert(data.message);
+                if (data.success) {
+                    location.reload(); // Actualise le solde et l'historique
+                }
+            } catch (err) {
+                alert("Erreur lors du transfert");
+            }
+        }
+
+        // Fonction pour charger l'historique depuis MySQL
+        async function chargerHistorique(userId) {
+            const container = document.getElementById('liste-historique');
+            try {
+                const res = await fetch(`/api/historique/${userId}`);
+                const data = await res.json();
+
+                if (data.success && data.transactions.length > 0) {
+                    container.innerHTML = "";
+                    data.transactions.forEach(t => {
+                        const isOut = t.expediteur_id == userId;
+                        const classe = isOut ? "montant-neg" : "montant-pos";
+                        const signe = isOut ? "-" : "+";
+                        const libelle = isOut ? `Vers ID: ${t.destinataire_id}` : `De ID: ${t.expediteur_id}`;
+
+                        container.innerHTML += `
+                            <div class="item-trans">
+                                <div class="trans-info">
+                                    <strong>${libelle}</strong><br>
+                                    <small>${new Date(t.date).toLocaleString('fr-FR')}</small>
+                                </div>
+                                <div class="${classe}">${signe}${t.montant} XOF</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.innerHTML = '<p style="text-align:center; color:gray;">Aucune transaction trouvée.</p>';
+                }
+            } catch (err) {
+                console.error("Erreur historique:", err);
+                container.innerHTML = '<p style="text-align:center; color:red;">Erreur de chargement de l\'historique.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
+
