@@ -113,15 +113,14 @@ app.post('/api/connexion', (req, res) => {
         res.json({ success: true, user: results[0] });
     });
 });
-
 // 3. Récupérer infos utilisateur
 app.get('/api/utilisateur/:id', (req, res) => {
-    // On nettoie l'ID au cas où il contient 08000
-    const userId = req.params.id.toString().replace("08000", "");
+    // PLUS DE REPLACE : On utilise l'ID complet (ex: 080002)
+    const userId = req.params.id;
 
     db.query('SELECT nom, solde FROM utilisateurs WHERE id = ?', [userId], (err, results) => {
         if (err) {
-            return res.status(500).json({ success: false, message: "Erreur DB" });
+            return res.status(500).json({ success: false, message: "Erreur serveur" });
         }
         if (results.length > 0) {
             res.json({ success: true, user: results[0] });
@@ -130,13 +129,14 @@ app.get('/api/utilisateur/:id', (req, res) => {
         }
     });
 });
-
-
 // 4. Vérification destinataire
 app.get('/api/verif-destinataire/:id', (req, res) => {
-    const idNettoye = req.params.id.replace("08000", ""); // Ton système de nettoyage
-    db.query('SELECT nom FROM utilisateurs WHERE id = ?', [idNettoye], (err, results) => {
+    // PLUS DE REPLACE : On utilise l'ID tel qu'il est saisi dans le champ
+    const userId = req.params.id; 
+
+    db.query('SELECT nom FROM utilisateurs WHERE id = ?', [userId], (err, results) => {
         if (err) return res.status(500).json({ success: false });
+        
         if (results.length > 0) {
             res.json({ success: true, nom: results[0].nom });
         } else {
@@ -144,6 +144,7 @@ app.get('/api/verif-destinataire/:id', (req, res) => {
         }
     });
 });
+
 
 // --- CRÉATION DE LA TABLE (à mettre après db.connect) ---
 const sqlCreateTable = `
@@ -225,10 +226,11 @@ app.get('/api/admin/utilisateurs', (req, res) => {
     });
 });
 
-// --- ROUTE HISTORIQUE (Indispensable pour ton HTML) ---
+// --- ROUTE HISTORIQUE ADAPTÉE ---
+
+// --- ROUTE HISTORIQUE NETTOYÉE ---
 app.get('/api/historique/:id', (req, res) => {
-    // On garde l'ID tel quel (ex: "080002")
-    const userId = req.params.id; 
+    const userId = req.params.id; // On garde l'ID complet (ex: 080005)
 
     const sql = `
         SELECT * FROM transactions
@@ -236,10 +238,7 @@ app.get('/api/historique/:id', (req, res) => {
         ORDER BY date DESC LIMIT 20`;
 
     db.query(sql, [userId, userId], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.json({ success: false, message: 'Erreur historique' });
-        }
+        if (err) return res.json({ success: false, message: 'Erreur SQL' });
         res.json({ success: true, transactions: results });
     });
 });
