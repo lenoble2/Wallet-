@@ -227,21 +227,21 @@ app.get('/api/admin/utilisateurs', (req, res) => {
 });
 
 // --- ROUTE HISTORIQUE ADAPTÉE ---
-
-// --- ROUTE HISTORIQUE NETTOYÉE ---
-app.get('/api/historique/:id', (req, res) => {
-    const userId = req.params.id; // On garde l'ID complet (ex: 080005)
-
-    const sql = `
-        SELECT * FROM transactions
-        WHERE expediteur_id = ? OR destinataire_id = ?
-        ORDER BY date DESC LIMIT 20`;
-
-    db.query(sql, [userId, userId], (err, results) => {
-        if (err) return res.json({ success: false, message: 'Erreur SQL' });
-        res.json({ success: true, transactions: results });
+// Route pour récupérer l'historique des transactions
+app.get('/api/transactions', (req, res) => {
+    // On récupère toutes les transactions triées par la plus récente
+    const sql = "SELECT * FROM transactions ORDER BY date DESC LIMIT 10";
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Erreur SQL:", err);
+            return res.status(500).json({ error: "Erreur base de données" });
+        }
+        // On envoie les résultats au format JSON
+        res.json(results);
     });
 });
+
 
 
 // --- LANCEMENT ---

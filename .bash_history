@@ -1,141 +1,3 @@
-git commit -m "Reset complet des scripts transfer"
-git push origin main
-node server.js
-nano transfert.html
-git add .
-git commit -m "Resert"
-git push origin main
-nano transfert.html
-git add .
-git commit -m "restar"
-git push origin main
-nano server.js
-nano transfert.html
-git add .
-git commit -m "Restar"
-git push origin main
-nano transfert.html
-nano server.js
-nano transfert.html
-git add .
-git commit -m " restart dinal"
-git push origin main
-nano transfert.html
-git add .
-git commit -m "restatr"
-git push origin main 
-git push origin main
-nano transfert.html
-git add .
-git commit -m "restadr"
-git push origin main
-nano transfert.html
-git add .
-git commit -m "tre"
-git push origin main
-nano server.js
-node server.js
-git add .
-git commit -m "Ajout rout"
-git push origin main
-nano server.js
-git add .
-git commit -m "Fre"
-git push origin main
-nano server.js
-git add .
-git commit -m "restard"
-git push origin main
-nano server.js
-node server.js
-git add .
-git commit -m "Mise a joir "
-git push origin main
-nano server.js
-git add .
-git commit -m "Tra"
-git push origin main
-nano server.js
-nano transfet.html
-nano transfert.html
-git add .
-git commit -m "Mise a niveau"
-git push origin main
-nano server.js
-git add .
-git commit -m "recharge"
-git push origin main
-nano server.js
-nana transfert.html
-nano transfert.html
-git add .
-git commit -m "Transfoele"
-git push origin main
-node server.js
-nano server.js
-nano transfert.html
-git add .
-git commit -m "final"
-git push origin main
-nano server.js
-nano transfert.html
-git add .
-git commit -m "Final"
-git push origin main
-nano server.js
-nano transfert.html
-git add .
-git commit -m "forest"
-git push origin main
-mariadb -h mysql-2640bf90-leantoken123-cb13.l.aivencloud.com -P 26246 -u avnadmin -pAVNS_tYZKEn9utteLIFKyPSj defaultdb --ssl=0
-nano transfert.html
-nano server.js
-git add .
-git commit -m "from"
-git push origin main
-nanp 
-nano server.js
-RENAME TABLE defaultdb.utilisateurs TO leandb.utilisateurs;
-mariadb -h mysql-2640bf90-leantoken123-cb13.l.aivencloud.com -P 26246 -u avnadmin -pAVNS_tYZKEn9utteLIFKyPSj defaultdb --ssl=0
-nano server.js
-git add server.js
-git commit -m "coreection port 26246 et table utilisateurs"
-git push origin main
-mariadb -h mysql-2640bf90-leantoken123-cb13.l.aivencloud.com -P 26246 -u avnadmin -pAVNS_tYZKEn9utteLIFKyPSj defaultdb --ssl=0
-nano server.js
-git add server.js
-git commit -m "coeezct"
-git push origin main
-nano transfert.html
-nano server.js
-git add transfert.html
-git commit -m "correcton"
-git push origin main
-nano transfert.html
-nano server.js
-nano servee.js
-nano server.js
-nano transfert.html
-git add .
-git commit -m "correct"
-git push origin main
-nano transfert.html
-nano server.js
-nano transfert.html
-nano server.js
-git add .
-git commit -m "grace"
-git push origin main
-nano server.js
-nano transfert.html
-git add .
-git commit -m "restrat"
-git push origin main
-nano server.js
-git add .
-git commit -m "retrouv"
-git push origin main
-nano transfert.html
 git add .
 git commit -m "reta"
 git push origin main
@@ -498,3 +360,141 @@ http://localhost:8080/test.html
 rm -rf $PREFIX/var/run/apache2/*
 httpd -k start
 exit;
+mariadb -h mysql-2640bf90-leantoken123-cb13.l.aivencloud.com -P 26246 -u avnadmin -pAVNS_tYZKEn9utteLIFKyPSj defaultdb --ssl=0
+server.js
+nano server.js
+nano dashboard.html
+node server.js
+node test_local.js
+test_local.html
+nano test_local.html
+node test_local.html
+nano test_local.html
+node test_local.js
+nano test_local.js
+node test_local.js
+nano test_local.html
+nano test_local.js
+node test_local.js
+nano test_local.html
+node test_local.js
+nano test_local.html
+node test_local.js
+nano test_local.html
+nano test_local.js
+nano test_local.html
+nano server.js
+node server.js
+nano dashboard.html
+node server.js
+nano test_local.js
+nano test_local.html
+nano server.js
+nano dashboard.html
+node servs
+node server.js
+nano server.js
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+git add server.js
+git commit -m "Ajoutet"
+git push origin main
+git add dashboard.html
+git commit-m "djy"
+git push origin main
+node server.js
+git add dashboard.html
+git commit -m "Mise a jour"
+git push origin main
+nano dashboard.html
+nano server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano server.js
+node server.js
+nano server.js
+node server.js
+nano dashboard.html
+node server.js
+nano server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js
+git add dashboard.html
+commit -m "Ajouter image"
+git push origin main
+git add dashboard.html
+commit -m "rajpu"
+git commit -m "rajout"
+git push origin main
+node server.js
+git add dashboard.html
+git commit -m "Ajoute de code style"
+git add/rm
+git restore
+git push
+git add .
+git commit -m "Mise a jpur"
+git pull origin main --rebasse
+git push origin main
+git pull origin main --allow-unrelated-histories
+git push origin main
+cp dashboard.html dashboard_sauve.html
+git fetch origin main
+git reset --hard origin/main
+git add dashboard.html
+git commit -m "Finalisation du slider avec images locales"
+git push origin main
+ls
+node server.js
+nano dashboard.html
+node server.js
+ls
+rm -rf dashboard.htmlo server.jq test_local
+ls
+nano imageq
+nano dashboard.html
+node server.js
+nano historique.html
+node server.js
+historique.html
+nano historique.html
+node server.js
+nano server.js
+node server.js
+nano historique.html
+node server.js
+nano historique.html
+node server.js
+nano historique.html
+node server.js
+nano historique.html
+node server.js
+nano historique.html
+node server.js
+nano dashboard.html
+node server.js
+nano dashboard.html
+node server.js

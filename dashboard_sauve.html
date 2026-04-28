@@ -199,18 +199,16 @@
                 <span>Carte</span>
             </a>
         </nav>
-<div class="mission-banner" onclick="location.href='missions.html'">
+<div class="mission-banner" onclick="location.href='#'" style="cursor: pointer;">
     <div class="slider-container">
- <img src="https://lh3.googleusercontent.com/u/0/d/1SQ_II2GKbvsS1cCjn5BsgHc2zT9RJhgJ" alt="Offre 1">
-                
-        <img src="https://lh3.googleusercontent.com/u/0/d/1H0bVaj_S0stLkjibGSwmUUI3QGWmjAC8" alt="Offre 2">
-        
-        <img src="https://lh3.googleusercontent.com/u/0/d/1_UDNH62YdOBiIywFHmGBRv4TO5qwelf-" alt="Offre 3">
+        <img src="images/offre11.jpg" alt="Mission 1">
+        <img src="images/offre21.jpg" alt="Mission 2">
+        <img src="images/offre31.jpg" alt="Mission 3">
     </div>
     <div class="banner-overlay">
-        <div class="text-content" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">
-            <h4 style="margin: 0;">Nos Missions en Isère</h4>
-            <p style="margin: 0; font-size: 11px;">Cliquez pour découvrir</p>
+        <div class="text-content" style="color: white; padding: 10px;">
+            <h4 style="margin: 0;">Nos Missions en Image</h4>
+            <p style="margin: 0; font-size: 11px;">Découvrez nos dernières activités</p>
         </div>
     </div>
 </div>
@@ -636,117 +634,95 @@ margin-left: 0px;
 .trans-date {
     font-size: 11px;
     color: #95a5a6;
-}
 
-.trans-amount {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-
-    
 </style>
 
 <script>
-    const API_BASE = "/api";
-
-    // Fonction pour formater l'ID avec le préfixe 08000
-    function formaterID(id) {
-        if (!id) return "--";
-        // Retourne 08000 suivi de l'ID (ex: 1 devient 080001)
-        return "08000" + id;
-    }
-
 async function chargerDonnees() {
-    const userId = localStorage.getItem('userId'); 
-    
-    if (userId) {
-        // Affichage de l'ID formaté (ex: 0800028)
-        const idFormate = "08000" + userId;
-        document.getElementById('user-id-display').textContent = "ID: " + idFormate;
-        
-        // Mise à jour du QR code
-        const qrImg = document.getElementById('qr-image');
-        if(qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=LEAN-${idFormate}`;
+    // 1. Récupération de l'ID (Correction : ajout des ||)
+    let userId = localStorage.getItem('user_id_test') || localStorage.getItem('userId') || localStorage.getItem('user_id');
+
+    if (!userId || userId === "undefined") {
+        console.error("Aucun ID trouvé");
+        return;
     }
 
-    if (!userId || userId === "undefined") return;
+    const displayId = document.getElementById('user-id-display');
+    if (displayId) displayId.textContent = "ID: " + userId;
 
     try {
-        // Récupération des données réelles depuis ton serveur Render
+        // Correction : Ajout des backticks pour l'URL
         const response = await fetch(`/api/utilisateur/${userId}`);
         const data = await response.json();
 
         if (data.success && data.user) {
-            // Affichage du solde agrandi
-            const montant = parseFloat(data.user.solde) || 0;
-            document.getElementById('solde').textContent = montant.toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            const soldeElement = document.getElementById('solde');
+            if (soldeElement) {
+                const montant = parseFloat(data.user.solde) || 0;
+                soldeElement.textContent = montant.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) + " XOF";
+            }
+            // On lance l'historique
+            chargerHistorique(userId);
         }
     } catch (error) {
-        console.error("Erreur serveur");
-        document.getElementById('solde').textContent = "---";
+        console.error("Erreur solde:", error);
     }
-
-    chargerHistorique(userId);
 }
 
 async function chargerHistorique(userId) {
-    const container = document.getElementById('liste-transactions');
+    const container = document.getElementById('liste-historique');
     if (!container) return;
 
     try {
-        // Nettoyage de l'ID pour la requête et la comparaison
         const cleanId = userId.toString().replace("08000", "");
-        
-        // Utilisation de API_BASE et de la route définie sur le serveur
-        const response = await fetch(`${API_BASE}/historique/${cleanId}`);
-        const data = await response.json();
+        // Correction : Ajout des backticks pour l'URL
+        const res = await fetch(`/api/historique/${cleanId}`);
+        const data = await res.json();
 
         if (data.success && data.transactions && data.transactions.length > 0) {
             container.innerHTML = ""; 
-            
-            data.transactions.forEach(t => {
-                // Utilisation des colonnes définies dans votre requête SQL server.js
-                // expediteur_id et destinataire_id
-                const isOut = t.expediteur_id == cleanId;
-                const couleur = isOut ? "#e74c3c" : "#2ecc71";
-                const signe = isOut ? "-" : "+";
-                
-                // Affichage de l'ID du destinataire ou de l'expéditeur
-                const nomAffiche = isOut 
-                    ? `Vers: 08000${t.destinataire_id}` 
-                    : `De: 08000${t.expediteur_id}`;
-                
-                // Utilisation de t.date (nom de la colonne dans votre SELECT * FROM transactions)
-                const dateAffiche = new Date(t.date).toLocaleDateString('fr-FR');
 
+            data.transactions.forEach(t => {
+                const isOut = t.expediteur_id == cleanId;
+                const signe = isOut ? "-" : "+";
+                const couleur = isOut ? "#e74c3c" : "#2ecc71";
+                const libelle = isOut ? `Vers ID: ${t.destinataire_id}` : `De ID: ${t.expediteur_id}`;
+
+                // Correction : Ajout du backtick de DEBUT ici
                 container.innerHTML += `
-                    <div class="transaction-item">
-                        <div class="trans-info">
-                            <span class="trans-name">${nomAffiche}</span>
-                            <span class="trans-date">${dateAffiche}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                        <div>
+                            <strong style="font-size: 14px;">${libelle}</strong><br>
+                            <small style="color: #999;">${new Date(t.date).toLocaleString('fr-FR')}</small>
                         </div>
-                        <div class="trans-amount" style="color: ${couleur};">
+                        <div style="font-weight: bold; color: ${couleur};">
                             ${signe}${t.montant} XOF
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         } else {
-            container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Aucune activité.</p>";
+            container.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Aucune transaction.</p>';
         }
-    } catch (error) {
-        console.error("Erreur historique:", error);
-        container.innerHTML = "<p style='text-align:center; padding:20px; font-size:12px; color:gray;'>Historique indisponible.</p>";
+    } catch (err) {
+        console.error("Erreur historique:", err);
+        container.innerHTML = '<p style="text-align:center; color:red;">Erreur de chargement.</p>';
     }
 }
-}
 
-    window.onload = chargerDonnees;
+window.onload = chargerDonnees;
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
