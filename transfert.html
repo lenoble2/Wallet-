@@ -41,6 +41,37 @@
 </div>
 
 <script>
+// Fonction pour initialiser les données du Dashboard
+function initDashboard() {
+    // 1. Récupérer l'ID (on utilise 80005 comme dans ta capture si rien n'est stocké)
+    const monID = localStorage.getItem('userId') || "80005"; 
+    
+    // 2. Mettre à jour l'affichage du texte ID
+    document.getElementById('display-user-id').innerText = monID;
+
+    // 3. Générer l'URL du QR Code
+    // Le QR contient le lien vers ta page de transfert avec ton ID en paramètre
+    const baseUrl = window.location.origin + "/transfert.html";
+    const qrData = `${baseUrl}?dest=${monID}`;
+    
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
+    
+    // 4. Afficher l'image dans la balise img
+    document.getElementById('qr-image').src = qrImageUrl;
+}
+
+// Fonction pour le bouton Scanner (optionnel)
+function openScanner() {
+    // Redirige vers une page de scan ou ouvre l'appareil photo
+    window.location.href = "scanner.html";
+}
+
+// Lancer au chargement de la page
+window.addEventListener('DOMContentLoaded', initDashboard);
+
+
+
+
 document.getElementById('btnEnvoyer').addEventListener('click', async () => {
     const messageDiv = document.getElementById('message');
     

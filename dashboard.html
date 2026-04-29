@@ -160,26 +160,52 @@
                 </span>
             </div>
         </header>
-<div class="qr-card">
-    <div class="card-horizontal-container">
-        <div class="qr-placeholder">
-            <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=Lean" alt="QR Code">
-            <div class="scanner-text">📷 Scanner</div>
-        </div>
 
-        <div class="card-details">
-            <div id="user-id-display" style="font-weight: bold; color: black; font-size: 16px;">ID: --</div>
-            
-            <div class="solde-principal" style="margin-top: 10px;">
-                <div style="color: gray; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Solde disponible</div>
-                <div style="color: #000088; font-size: 26px; font-weight: bold; line-height: 1.2;">
-                    <span id="solde">0,00</span> <small style="font-size: 14px;">XOF</small>
-                </div>
-            </div>
+<div class="qr-card" style="
+    display: flex; 
+    flex-direction: row; 
+    align-items: center; /* Force le centrage vertical de tous les enfants */
+    justify-content: flex-start; /* Aligne les blocs au début horizontalement */
+    background: #f1f3f6; /* Couleur grise du fond */
+    padding: 15px; 
+    border-radius: 20px; 
+    margin: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+">
+    
+    <div style="
+        background: white; 
+        padding: 10px; 
+        border-radius: 15px; 
+        text-align: center;
+        width: 100px; /* Taille fixe pour le bloc blanc */
+        height: 100px; /* Taille fixe pour le bloc blanc */
+        display: flex; /* Pour centrer l'image à l'intérieur */
+        flex-direction: column;
+        justify-content: center; /* Centre horizontalement l'image */
+        align-items: center; /* Centre verticalement l'image */
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    ">
+        <img id="qr-image" src="" alt="QR" style="width: 80px; height: 80px; display: block;">
+        <div style="font-size: 10px; color: #555; margin-top: 5px;">📷 Scanner</div>
+    </div>
+    
+    <div style="margin-left: 20px; flex-grow: 1;">
+        <div style="font-weight: bold; font-size: 1.1em; color: #333; margin-bottom: 5px;">
+            ID: <span id="display-user-id">---</span>
+        </div>
+        
+        <div style="font-size: 0.7em; color: #888; font-weight: bold; text-transform: uppercase;">
+            SOLDE DISPONIBLE
+        </div>
+        
+        <div style="font-size: 1.4em; font-weight: 800; color: #00008b; display: flex; align-items: baseline;">
+            <span id="user-solde">0,00</span>
+            <span style="font-size: 0.5em; margin-left: 5px;">XOF</span>
         </div>
     </div>
 </div>
-      
+
 
         <nav class="action-grid">
             <a href="transfert.html" class="action-item">
@@ -648,88 +674,59 @@ margin-left: 0px;
 
 
 <script>
-async function chargerDonnees() {
-    // 1. Récupération de l'ID complet (doit être 08000x dans le localStorage)
-    let userId = localStorage.getItem('user_id_test') || localStorage.getItem('userId');
 
-    if (!userId || userId === "undefined") {
-        console.error("Aucun ID trouvé dans le stockage local");
-        return;
+async function chargerDonneesDashboard() {
+    // --- 1. RÉCUPÉRATION DE L'ID ---
+    // On cherche l'ID dans toutes les clés possibles du localStorage
+    const userId = localStorage.getItem('userId') || localStorage.getItem('user_id_test') || "080005";
+
+    // --- 2. MISE À JOUR DE L'ID ET DU QR CODE ---
+    const idElement = document.getElementById('display-user-id');
+    const qrImage = document.getElementById('qr-image');
+
+    if (idElement) idElement.textContent = userId;
+
+    if (qrImage) {
+        const baseUrl = window.location.origin + "/transfert.html";
+        const qrData = `${baseUrl}?dest=${userId}`;
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
     }
 
-    // 2. Affichage de l'ID (Plus besoin de rajouter "08000" manuellement car il est déjà dans userId)
-    const displayId = document.getElementById('user-id-display');
-    if (displayId) displayId.textContent = "ID: " + userId;
-
+    // --- 3. APPEL API POUR LE SOLDE ---
     try {
-        // 3. Appel de la route API avec l'ID COMPLET (08000x)
+        // On utilise ta route API existante
         const response = await fetch(`/api/utilisateur/${userId}`);
         const data = await response.json();
 
         if (data.success && data.user) {
-            // Affichage du solde
-            const soldeElement = document.getElementById('solde');
+            const soldeElement = document.getElementById('user-solde');
             if (soldeElement) {
                 const montant = parseFloat(data.user.solde) || 0;
+                // Formatage propre : 570,00
                 soldeElement.textContent = montant.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }) + " XOF";
+                });
             }
-
-            // Charger l'historique avec l'ID COMPLET
-            chargerHistorique(userId);
+            
+            // Si tu as une fonction pour l'historique, on l'appelle ici
+            if (typeof chargerHistorique === "function") {
+                chargerHistorique(userId);
+            }
         }
     } catch (error) {
-        console.error("Erreur de chargement des données:", error);
+        console.error("Erreur lors de la récupération des données utilisateur:", error);
     }
 }
 
-async function chargerHistorique(userId) {
-    const container = document.getElementById('liste-historique');
-    if (!container) return;
+// Une seule fonction au chargement pour éviter les conflits
+window.addEventListener('DOMContentLoaded', chargerDonneesDashboard);
 
-    try {
-        const res = await fetch(`/api/historique/${userId}`);
-        const data = await res.json();
-
-        if (data.success && data.transactions.length > 0) {
-            container.innerHTML = "";
-            
-            data.transactions.forEach(t => {
-                // On compare l'ID complet (ex: 080005 == 080005)
-                const isOut = String(t.expediteur_id) === String(userId);
-                
-                const classe = isOut ? "montant-neg" : "montant-pos";
-                const signe = isOut ? "-" : "+";
-                const couleur = isOut ? "#e74c3c" : "#2ecc71"; // Rouge ou Vert
-
-                const libelle = isOut 
-                    ? `Vers ID: ${t.destinataire_id}` 
-                    : `De ID: ${t.expediteur_id}`;
-
-                container.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f0f0f0;">
-                        <div>
-                            <strong>${libelle}</strong><br>
-                            <small style="color: gray;">${new Date(t.date).toLocaleString('fr-FR')}</small>
-                        </div>
-                        <div style="font-weight: bold; color: ${couleur};">
-                            ${signe}${t.montant} XOF
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            container.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Aucune activité.</p>';
-        }
-    } catch (err) {
-        container.innerHTML = '<p style="text-align:center; color:red;">Erreur de connexion.</p>';
-    }
+// Fonction pour le scanner
+function openScanner() {
+    window.location.href = "scanner.html";
 }
 
-
-window.onload = chargerDonnees;
 
 </script>
 </body>
