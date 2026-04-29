@@ -5,40 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Effectuer un transfert - Lean Wallet</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h2 { text-align: center; margin-bottom: 25px; color: #333; }
-        .group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        /* On retire le flex du body pour que les éléments s'empilent normalement */
+        body { 
+            font-family: sans-serif; 
+            background-color: #f4f4f9; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+        }
+        .group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
         button:hover { background-color: #0056b3; }
-        #message { margin-top: 15px; text-align: center; font-size: 14px; font-weight: bold; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Effectuer un transfert</h2>
+    <div style="background-color: #00008b; padding: 20px 15px; color: white; display: flex; align-items: center; justify-content: space-between; position: relative;">
+        <a href="dashboard.html" style="color: white; text-decoration: none; font-size: 1.1em; display: flex; align-items: center; z-index: 10;">
+            <span style="font-size: 1.5em; margin-right: 5px;">←</span> Retour
+        </a>
 
-<div class="group">
-        <label>ID du destinataire</label>
-        <input type="text" id="dest" placeholder="Ex: 80002">
-    </div>       
+        <div style="position: absolute; width: 100%; left: 0; text-align: center; font-weight: bold; font-size: 1.1em; pointer-events: none;">
+</br>            Effectuer un transfert
+        </div>
 
-    <div class="group">
-        <label>Montant (XOF)</label>
-        <input type="number" id="montant" placeholder="Somme à envoyer">
+        <div style="width: 60px;"></div>
     </div>
 
-    <div class="group" style="display:none;"> <label>Code PIN</label>
-        <input type="password" id="pin" maxlength="4" value="0000">
+    <div style="padding: 20px; display: flex; justify-content: center;">
+
+        <div class="card">
+            <div class="group">
+                <label>ID du destinataire</label>
+                <input type="text" id="dest" placeholder="Ex: 80002">
+            </div>
+
+            <div class="group">
+                <label>Montant (XOF)</label>
+                <input type="number" id="montant" placeholder="Somme à envoyer">
+            </div>
+
+            <div style="display:none;">
+                <input type="password" id="pin" value="0000">
+            </div>
+
+            <button id="btnEnvoyer">Envoyer l'argent</button>
+
+            <div id="message"></div>
+        </div>
+
     </div>
 
-    <button id="btnEnvoyer">Envoyer l'argent</button>
-
-    <div id="message"></div>
-</div>
 
 <script>
 // Fonction pour initialiser les données du Dashboard
@@ -139,6 +183,18 @@ document.getElementById('btnEnvoyer').addEventListener('click', async () => {
         messageDiv.innerText = "Erreur de connexion au serveur local.";
     }
 });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const destId = urlParams.get('dest');
+        
+        if (destId) {
+            // Remplit le champ ID du destinataire automatiquement
+            document.querySelector('input[placeholder="Ex: 80002"]').value = destId;
+        }
+    });
+
+
 </script>
 
 </body>
