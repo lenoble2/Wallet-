@@ -3,91 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lean - Historique</title>
+    <title>Lean - Mon Historique</title>
     <style>
         body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
         .header { background: #00008b; color: white; padding: 15px; display: flex; align-items: center; }
         .back-btn { color: white; text-decoration: none; font-size: 20px; margin-right: 15px; }
         .container { padding: 15px; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 10px; }
         .transaction-item {
+            background: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .info-tx { display: flex; flex-direction: column; }
-        .label-id { font-weight: bold; color: #333; margin-bottom: 3px; }
-        .date-tx { font-size: 0.75em; color: #888; }
-        .amount-tx { font-weight: bold; font-size: 1.05em; }
+        .label-id { font-weight: bold; color: #333; }
+        .date-tx { font-size: 0.8em; color: #888; margin-top: 4px; }
+        .amount-tx { font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <a href="dashboard.html" class="back-btn">←</a>
-    <h2 style="margin:0; font-size: 1.1em;">Activités récentes</h2>
+    <h2 style="margin:0; font-size: 1.1em;">Mon Historique</h2>
 </div>
 
-<div class="container">
-    <div class="card" id="list-container">
-        <p style="text-align:center; color:gray;">Chargement...</p>
-    </div>
+<div class="container" id="list-container">
+    <p style="text-align:center;">Chargement de vos activités...</p>
 </div>
 
 <script>
-    async function loadHistory() {
-        const container = document.getElementById('list-container');
-        try {
-            const response = await fetch('/api/transactions');
-            const data = await response.json();
+async function loadHistory() {
+    const container = document.getElementById('list-container');
+    
+    // Récupérer l'ID de l'utilisateur stocké (ex: dans localStorage après connexion)
+    // Si tu n'as pas de localStorage, remplace par l'ID de test pour vérifier
+    const monID = localStorage.getItem('userId') || "80006"; 
 
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">Aucune transaction.</p>';
-                return;
-            }
-
-            container.innerHTML = ''; // On vide le chargement
-            
-            // ID de l'utilisateur actuel (80002 d'après tes photos)
-            const monID = "80002";
-
-            data.forEach(tx => {
-                const item = document.createElement('div');
-                item.className = 'transaction-item';
-
-                // On récupère les colonnes (on gère les deux langues au cas où)
-                const exp = tx.expediteur_id || tx.sender_id || "Inconnu";
-                const dest = tx.destinataire_id || tx.receiver_id || "Inconnu";
-                const mtn = tx.montant || tx.amount || 0;
-                const dt = tx.date || tx.created_at;
-
-                // Si l'expéditeur est MOI (80002), c'est un débit (-)
-                const isDebit = String(exp).includes(monID);
-                
-                const label = isDebit ? `Vers ID: ${dest}` : `De ID: ${exp}`;
-                const color = isDebit ? '#e74c3c' : '#27ae60';
-                const sign = isDebit ? '-' : '+';
-
-                item.innerHTML = `
-                    <div class="info-tx">
-                        <span class="label-id">${label}</span>
-                        <span class="date-tx">${new Date(dt).toLocaleString('fr-FR')}</span>
-                    </div>
-                    <div class="amount-tx" style="color: ${color};">
-                        ${sign}${parseFloat(mtn).toFixed(2)} XOF
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        } catch (e) {
-            container.innerHTML = '<p style="text-align:center; color:red;">Erreur de connexion au serveur.</p>';
+    try {
+        // On envoie l'ID au serveur pour qu'il filtre
+        const response = await fetch(`/api/transactions?userId=${monID}`);
+        
+        if (!response.ok) {
+            container.innerHTML = '<p style="text-align:center;">Erreur de chargement.</p>';
+            return;
         }
-    }
 
-    window.onload = loadHistory;
+        const transactions = await response.json();
+
+        if (transactions.length === 0) {
+            container.innerHTML = '<p style="text-align:center;">Aucune transaction trouvée.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        transactions.forEach(tx => {
+            const item = document.createElement('div');
+            item.className = 'transaction-item';
+
+            // Logique de distinction Débit / Crédit
+            // Si l'ID de l'expéditeur est le mien => J'ai envoyé de l'argent (Débit -)
+            const isDebit = (String(tx.expediteur_id) === String(monID));
+            
+            const label = isDebit ? `Vers: ${tx.destinataire_id}` : `De: ${tx.expediteur_id}`;
+            const color = isDebit ? '#e74c3c' : '#27ae60';
+            const sign = isDebit ? '-' : '+';
+
+            item.innerHTML = `
+                <div class="info-tx">
+                    <span class="label-id">${label}</span>
+                    <span class="date-tx">${new Date(tx.date).toLocaleString('fr-FR')}</span>
+                </div>
+                <div class="amount-tx" style="color: ${color};">
+                    ${sign}${parseFloat(tx.montant).toFixed(2)} XOF
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<p style="text-align:center; color:red;">Erreur réseau.</p>';
+    }
+}
+
+window.onload = loadHistory;
 </script>
+
 </body>
 </html>
 

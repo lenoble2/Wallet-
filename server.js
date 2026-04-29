@@ -3,9 +3,9 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
-
-
+const session = require('express-session');
 const app = express();
+
 
 // Middlewares
 app.use(cors());
@@ -17,6 +17,12 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Headers", "Content-Type");
     next();
 });
+
+app.use(session({
+   secret: 'ton_secret_lean',
+   resave: false,
+   saveUninitialized: true
+}));
 
 app.get('/api/admin/utilisateurs', (req, res) => {
     // On récupère tout le monde
@@ -226,22 +232,38 @@ app.get('/api/admin/utilisateurs', (req, res) => {
     });
 });
 
-// --- ROUTE HISTORIQUE ADAPTÉE ---
-// Route pour récupérer l'historique des transactions
+
+
+// --- ROUTE HISTORIQUE PRIVÉE ---
+// --- ROUTE HISTORIQUE PERSONNALISÉE ---
 app.get('/api/transactions', (req, res) => {
-    // On récupère toutes les transactions triées par la plus récente
-    const sql = "SELECT * FROM transactions ORDER BY date DESC LIMIT 10";
-    
-    db.query(sql, (err, results) => {
+    // 1. Récupération de l'ID (via session ou query param pour le test)
+    // Si tu n'as pas encore de système de session complet, 
+    // on peut passer l'id dans l'URL : /api/transactions?userId=80006
+    const userId = req.session.userId || req.query.userId;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: "Non connecté" });
+    }
+
+    // 2. La requête SQL filtre : 
+    // "Donne moi les transactions où JE suis l'expéditeur OU JE suis le destinataire"
+    const sql = `
+        SELECT * FROM transactions 
+        WHERE expediteur_id = ? OR destinataire_id = ? 
+        ORDER BY date DESC
+    `;
+
+    db.query(sql, [userId, userId], (err, results) => {
         if (err) {
             console.error("Erreur SQL:", err);
-            return res.status(500).json({ error: "Erreur base de données" });
+            return res.status(500).json({ success: false, message: "Erreur base de données" });
         }
-        // On envoie les résultats au format JSON
+        
+        // On renvoie les résultats filtrés
         res.json(results);
     });
 });
-
 
 
 // --- LANCEMENT ---
@@ -250,4 +272,8 @@ app.listen(PORT, '0.0.0.0', () => {
     // CORRIGÉ : Backticks ajoutés
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
 });
+
+
+
+
 
