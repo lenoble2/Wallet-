@@ -136,11 +136,20 @@
             Déjà inscrit ? <a href="login.html">Se connecter ici</a>
         </div>
 
-        <a href="/leanpay.apk" download="LeanPay.apk" class="btn-download">
-           📲 Télécharger l'application Android (APK)
-        </a>
-    </div>
 
+<button onclick="afficherAideInstallation()" style="background-color: #ff6600; color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px;">
+    📲 Installer l'application LeanPay
+</button>
+
+<script>
+function afficherAideInstallation() {
+    alert("Pour installer proprement LeanPay :\n\n" +
+          "1. Ne restez pas sur le navigateur de Facebook/WhatsApp.\n" +
+          "2. Copiez le lien et ouvrez-le directement dans l'application GOOGLE CHROME.\n" +
+          "3. Cliquez sur les 3 petits points en haut à droite de Chrome.\n" +
+          "4. Sélectionnez 'Installer l'application' (ou 'Ajouter à l'écran d'accueil').");
+}
+</script>
 
 <script>
     const form = document.getElementById('registerForm');
