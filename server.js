@@ -16,8 +16,10 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.static(__dirname));
+
+// Priorité au dossier public pour éviter les conflits d'extensions
 app.use(express.static('public'));
+app.use(express.static(__dirname));
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'ton_secret_lean',
@@ -25,6 +27,17 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false }
 }));
+
+// --- ROUTE DÉDIÉE AU TÉLÉCHARGEMENT DE L'APK ---
+app.get('/leanpay.apk', (req, res) => {
+    const file = path.join(__dirname, 'public', 'leanpay.apk');
+    res.download(file, 'LeanPay.apk', (err) => {
+        if (err) {
+            console.error("Erreur de téléchargement APK:", err);
+            res.status(404).send("Le fichier APK est introuvable sur le serveur.");
+        }
+    });
+});
 
 // --- CONFIGURATION DB (AIVEN) ---
 const dbConfig = {
