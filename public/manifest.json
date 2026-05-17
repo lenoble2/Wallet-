@@ -1,0 +1,17 @@
+{
+  "short_name": "LeanPay",
+  "name": "LeanPay Wallet",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/login.html",
+  "background_color": "#000088",
+  "theme_color": "#000088",
+  "display": "standalone",
+  "orientation": "portrait"
+}
+
