@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-
-<a href="leanpay.apk" download="LeanPay.apk" class="btn-download">
-   Télécharger l'application Android (APK)
-</a>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - LeanPay</title>
@@ -18,6 +13,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            flex-direction: column; /* Permet d'empiler si nécessaire */
         }
         .container {
             background: white;
@@ -44,7 +40,7 @@
 
         h1 { color: #333; margin-bottom: 5px; font-size: 22px; }
         p { color: #666; margin-bottom: 25px; font-size: 14px; }
-        
+
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #444; }
         input {
@@ -82,7 +78,114 @@
             font-weight: bold;
         }
         .footer-link a:hover { text-decoration: underline; }
+
+        /* --- JOLI STYLE POUR LE BOUTON APK --- */
+        .btn-download {
+            display: block;
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #f39c12; /* Orange LeanPay */
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .btn-download:hover {
+            background-color: #d3830e;
+            transform: translateY(-1px);
+        }
     </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">Lean<span>Pay</span></div>
+        
+        <h1>Inscription</h1>
+        <p>Créez votre compte sécurisé</p>
+
+        <form id="registerForm">
+            <div class="input-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" placeholder="Votre nom complet" required>
+            </div>
+            <div class="input-group">
+                <label>N° de téléphone ☎️</label>
+                <input type="tel" placeholder="Ex: 0102030405" required>
+            </div>
+            <div class="input-group">
+                <label>E-mail</label>
+                <input type="email" placeholder="votre@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>Code PIN (4 chiffres)</label>
+                <input type="password" maxlength="4" placeholder="...." required>
+            </div>
+            <div class="input-group">
+                <label>Confirmer le PIN</label>
+                <input type="password" maxlength="4" placeholder="...." required>
+            </div>
+
+            <button type="submit">S'inscrire</button>
+        </form>
+
+        <div class="footer-link">
+            Déjà inscrit ? <a href="login.html">Se connecter ici</a>
+        </div>
+
+        <a href="/leanpay.apk" download="LeanPay.apk" class="btn-download">
+           📲 Télécharger l'application Android (APK)
+        </a>
+    </div>
+
+
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">Lean<span>Pay</span></div>
+        
+        <h1>Inscription</h1>
+        <p>Créez votre compte sécurisé</p>
+
+        <form id="registerForm">
+            <div class="input-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" placeholder="Votre nom complet" required>
+            </div>
+            <div class="input-group">
+                <label>N° de téléphone ☎️</label>
+                <input type="tel" placeholder="Ex: 0102030405" required>
+            </div>
+            <div class="input-group">
+                <label>E-mail</label>
+                <input type="email" placeholder="votre@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>Code PIN (4 chiffres)</label>
+                <input type="password" maxlength="4" placeholder="...." required>
+            </div>
+            <div class="input-group">
+                <label>Confirmer le PIN</label>
+                <input type="password" maxlength="4" placeholder="...." required>
+            </div>
+
+            <button type="submit">S'inscrire</button>
+        </form>
+
+<div class="footer-link">                                                        Déjà inscrit ? <a href="login.html">Se connecter ici</a>
+        </div>
+
+        <a href="/leanpay.apk" download="LeanPay.apk" class="btn-download">
+           📲 Télécharger l'application Android (APK)
+        </a>
+    </div>
+
+
+
 </head>
 <body>
 
