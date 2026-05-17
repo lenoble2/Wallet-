@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Client | Lean Pay</title>
+    <style>
+        :root {
+            --primary-color: #002080; /* Bleu LeanPay */
+            --accent-color: #3498db;
+            --bg-light: #f8f9fa;
+            --text-dark: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* Style du bouton retour */
+        .nav-header {
+            padding: 10px 15px;
+            background: white;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-retour {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-retour:hover {
+            background: #f0f0f0;
+        }
+
+        .header {
+            background-color: white;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .email-link {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border 0.3s;
+        }
+
+        .email-link:hover {
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .help-grid { grid-template-columns: 1fr; }
+        }
+
+        .help-item {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .badge {
+            background: #e1f5fe;
+            color: #01579b;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav-header">
+        <a href="menu.html" class="btn-retour">
+            <span>⬅️</span> Retour au menu
+        </a>
+    </nav>
+
+    <header class="header">
+        <h1>Lean Pay Support</h1>
+        <p>Nous sommes là pour vous aider à gérer vos transactions.</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <span class="contact-icon">✉️</span>
+            <h2>Contactez-nous par e-mail</h2>
+            <p>Pour toute question technique ou demande d'assistance sur votre compte :</p>
+            <a href="mailto:admin@lean-pay.com" class="email-link">admin@lean-pay.com</a>
+            <br>
+            <span class="badge">Réponse sous 24h</span>
+        </div>
+
+        <div class="help-grid">
+            <div class="help-item">
+                <h3>Sécurité</h3>
+                <p>Signalez toute activité suspecte ou demandez le blocage de votre portefeuille.</p>
+            </div>
+            <div class="help-item">
+                <h3>Transactions</h3>
+                <p>Un problème avec un transfert ? Nos administrateurs vérifient l'état du réseau en temps réel.</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; font-size: 0.9rem; color: #777;">
+            <p>&copy; 2026 Lean Pay. Système de paiement sécurisé.</p>
+        </div>
+    </div>
+
+</body>
+</html>

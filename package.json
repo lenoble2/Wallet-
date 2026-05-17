@@ -1,0 +1,21 @@
+{
+  "name": "lean2",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "^8.1.0",
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "axios": "^1.16.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.22.1",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.22.2",
+    "nodemailer": "^8.0.7"
+  }
+}

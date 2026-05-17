@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lean Wallet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+<link rel="manifest" href="/manifest.json">
+
+    <style>
+        :root {
+            --Lean-blue: #00008b;
+            --bg-light: #f5f7fa;
+        }
+
+        body {
+            background-color: #ddd;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background-color: var(--Lean-blue);
+            color: white;
+            padding: 15px 20px 40px 20px;
+            text-align: center;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: -25px;
+        }
+
+        .burger-menu {
+            width: 25px;
+            height: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+        }
+
+        .burger-menu span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: white;
+        }
+
+        .lang-select {
+            background: transparent;
+            color: white;
+            border: none;
+            font-size: 14px;
+        }
+
+        .balance-container {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Carte QR et Solde */
+        .qr-card {
+            background-color: #f1f3f6;
+            padding: 20px;
+            border-radius: 20px;
+            margin: -25px 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .qr-placeholder {
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .qr-placeholder img {
+            width: 65px;
+            height: 65px;
+            display: block;
+        }
+
+        /* Grille d'actions */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 10px 20px;
+        }
+
+        .action-item {
+            text-decoration: none;
+            color: #333;
+            font-size: 11px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-size: 22px;
+        }
+
+        .blue { background: #eef2ff; color: #3b82f6; }
+        .orange { background: #fff7ed; color: #f97316; }
+        .gold { background: #fefce8; color: #d4af37; }
+        .yellow { background: #f0f4f8; color: #64748b; }
+
+        /* Slider */
+        .main-slider-container {
+            margin: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            height: 130px;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            width: 300%;
+            height: 100%;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        .main-slide { width: 33.333%; height: 100%; }
+        .main-slide img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Historique */
+        .history-section { padding: 20px; }
+        .history-title { font-weight: bold; margin-bottom: 10px; color: #333; }
+
+        /* Scanner Overlay */
+        #scanner-container {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-top">
+                <a href="menu.html" class="burger-menu">
+                    <span></span><span></span><span></span>
+                </a>
+                <select class="lang-select">
+                    <option>🇫🇷 fr</option>
+                    <option>🇺🇸 en</option>
+                </select>
+            </div>
+            <div class="balance-container">
+                <span style="color: yellow;">Le</span>an
+            </div>
+        </header>
+
+        <div id="scanner-container">
+            <div id="reader" style="width: 300px; background: white; border-radius: 10px;"></div>
+            <button onclick="stopScanner()" style="margin-top:20px; padding:12px 25px; background:red; color:white; border:none; border-radius:5px;">Fermer</button>
+        </div>
+
+        <div class="qr-card">
+            <div class="qr-placeholder" onclick="startScanner()">
+                <img id="qr-image" src="" alt="QR">
+                <div style="font-size: 9px; color: #555; margin-top: 5px; font-weight: bold;">📷Scanner</div>
+            </div>
+
+            <div style="margin-left: 20px; flex-grow: 1;">
+                <div style="font-weight: bold; font-size: 1.1em; color: #333; margin-bottom: 2px;">
+                    ID: <span id="display-user-id">080005</span>
+                </div>
+                <div style="font-size: 0.7em; color: #888; text-transform: uppercase; font-weight: bold;">
+                    Solde disponible
+                </div>
+                <div style="font-size: 1.5em; font-weight: 900; color: #00008b;">
+                    <span id="user-solde">0,00</span>
+                    <span style="font-size: 0.5em; margin-left: 3px;">XOF</span>
+                </div>
+            </div>
+        </div>
+
+<nav class="action-grid">
+            <a href="transfert.html" class="action-item">
+                <div class="icon blue">👤</div>
+                <span>Transfert</span>
+</a>
+
+<a href="public/echange.html" class="action-item">
+                <div class="icon orange">🔄</div>
+                <span>Échanges MM</span>
+            </a>
+
+            <a href="lean.html" class="action-item">
+                <div class="icon gold">🏛️</div>
+                <span>Lean</span>
+            </a>
+            <a href="carte.html" class="action-item">
+                <div class="icon yellow">💳</div>
+                <span>Carte</span>
+            </a>
+        </nav>
+
+        <div class="main-slider-container">
+            <div class="slider-wrapper" id="mainSlider">
+                <div class="main-slide"><img src="images/offre.jpg"></div>
+                <div class="main-slide"><img src="images/uemoa.jpg"></div>
+                <div class="main-slide"><img src="images/reseaux.jpg"></div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">Activités récentes</div>
+            <div id="liste-transactions">
+                <p style="text-align: center; font-size: 12px; color: gray;"><a href="historique.html" style="text-decoration: none; color: inherit;">
+    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+        <div style="background: #f0f0f0; padding: 15px; border-radius: 50%; margin-bottom: 5px;">
+            📅 
+        </div>
+        <span style="font-size: 12px;">Historique</span>
+    </div>
+</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode;
+
+        function startScanner() {
+            document.getElementById('scanner-container').style.display = 'flex';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                (text) => {
+                    stopScanner();
+                    window.location.href = `transfert.html?dest=${text}`;
+                }
+            ).catch(err => alert("Erreur caméra : " + err));
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scanner-container').style.display = 'none';
+                });
+            }
+        }
+
+        // Slider automatique
+        let index = 0;
+        setInterval(() => {
+            index = (index + 1) % 3;
+            document.getElementById('mainSlider').style.transform = `translateX(-${index * 33.333}%)`;
+        }, 4000);
+
+        // Chargement des données
+        window.onload = async () => {
+            const userId = localStorage.getItem('userId') || "080005";
+            document.getElementById('display-user-id').textContent = userId;
+            
+            // Génération QR
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${userId}`;
+            document.getElementById('qr-image').src = qrUrl;
+
+            // Simuler chargement solde (Remplace par ton fetch API réel)
+            try {
+                const response = await fetch(`/api/utilisateur/${userId}`);
+                const data = await response.json();
+                if(data.user) {
+                    document.getElementById('user-solde').textContent = parseFloat(data.user.solde).toLocaleString('fr-FR');
+                }
+            } catch(e) { console.log("Mode démo ou erreur API"); }
+        };
+
+
+
+    </script>
+</body>
+</html>
+

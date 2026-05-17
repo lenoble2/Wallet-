@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Lean</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Fond bleu supprimé au profit d'un gris clair neutre */
+            background-color: #f4f7f6; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 35px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+        }
+        /* Style du Logo Lean */
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #0000AA;
+            letter-spacing: -1px;
+        }
+        .logo span {
+            color: #f39c12; /* Le L en Jaune */
+        }
+        h1 { color: #333; margin-bottom: 5px; font-size: 22px; }
+        p { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #444; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #eee;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0000AA;
+            background-color: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #0000AA;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: transform 0.2s, background 0.3s;
+        }
+        button:active { transform: scale(0.98); }
+        button:hover { background-color: #000088; }
+        
+        .footer-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+        .footer-link a {
+            color: #0000AA;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        /* Style pour espacer les deux liens du bas */
+        .forgot-password {
+            display: block;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">Lean<span>Pay</span></div>
+    
+
+    <h1>Connexion</h1>
+    <p>Heureux de vous revoir !</p>
+
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" placeholder="votre@email.com" required>
+        </div>
+        <div class="input-group">
+            <label for="pin">Code PIN (4 chiffres)</label>
+            <input type="password" id="pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
+        </div>
+
+        <button type="submit" id="btnConnecter">Se connecter</button>
+    </form>
+
+    <div class="footer-link">
+        <div>Nouveau ici ? <a href="index.html">Créer un compte</a></div>
+        <div class="forgot-password">
+            <a href="oublie.html">Mot de passe oublié ?</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('loginForm');
+    const btn = document.getElementById('btnConnecter');
+
+    // Endpoint vers ton serveur Render
+    const API_ENDPOINT = "https://lean-pay.com/api/connexion";
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        btn.disabled = true;
+        btn.innerText = "Connexion...";
+
+        const email = document.getElementById('email').value.trim();
+        const pin = document.getElementById('pin').value.trim();
+
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, pin })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Stockage des infos utilisateurs venant de MySQL
+                if (data.user) {
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.nom);
+                }
+                window.location.href = 'dashboard.html'; 
+            } else {
+                alert("Échec : " + (data.message || "Email ou PIN incorrect"));
+                resetButton();
+            }
+        } catch (error) {
+            console.error("Erreur de connexion:", error);
+            // Alerte personnalisée pour le réveil de Render
+            alert("Connexion impossible. Si le site vient d'être ouvert, attendez 30 secondes que le serveur Render se réveille.");
+            resetButton();
+        }
+    };
+
+    function resetButton() {
+        btn.disabled = false;
+        btn.innerText = "Se connecter";
+    }
+</script>
+</body>
+</html>
+

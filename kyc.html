@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification KYC - LeanPay</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h2 { color: #002080; margin-top: 10px; }
+        .btn-retour { width: 100%; padding: 10px; background: transparent; color: #666; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        select, input[type="text"] { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .upload-box { border: 2px dashed #002080; padding: 25px; text-align: center; margin: 15px 0; border-radius: 12px; color: #002080; background: #f0f4ff; cursor: pointer; position: relative; }
+        .preview { width: 100%; max-height: 200px; display: none; margin-top: 10px; border-radius: 8px; object-fit: cover; }
+        #btnSoumettre { width: 100%; padding: 15px; background: #002080; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        #btnSoumettre:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <button class="btn-retour" onclick="window.location.href='menu.html'">⬅️ Retour au menu</button>
+
+    <h2>Vérification d'identité</h2>
+    <p style="font-size: 0.9em; color: #666;">Fournissez vos documents pour sécuriser votre compte <strong>LeanPay</strong>.</p>
+
+    <label>Type de pièce</label>
+    <select id="type_piece">
+        <option value="CNI">Carte Nationale d'Identité (CNI)</option>
+        <option value="PASSEPORT">Passeport</option>
+        <option value="ATTESTATION">Attestation d'identité</option>
+    </select>
+
+    <label>Numéro de la pièce</label>
+    <input type="text" id="num_piece" placeholder="Ex: C001234567">
+
+    <div class="upload-box" onclick="document.getElementById('file-recto').click()">
+        <div id="text-recto">📸 Cliquez pour photographier le RECTO</div>
+        <input type="file" id="file-recto" accept="image/*" capture="camera" style="display:none" onchange="handleFile(this, 'recto')">
+        <img id="img-recto" class="preview">
+    </div>
+
+    <div class="upload-box" onclick="document.getElementById('file-selfie').click()">
+        <div id="text-selfie">🤳 Cliquez pour un SELFIE avec la pièce</div>
+        <input type="file" id="file-selfie" accept="image/*" capture="camera" style="display:none" onchange="handleFile(this, 'selfie')">
+        <img id="img-selfie" class="preview">
+    </div>
+
+    <button id="btnSoumettre" onclick="envoyerKYC()">SOUMETTRE MON DOSSIER</button>
+</div>
+
+<script>
+    let photoRecto = null;
+    let photoSelfie = null;
+
+    // Cette fonction traite l'image sélectionnée/prise par l'appareil photo
+    function handleFile(input, type) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64Image = e.target.result;
+            if (type === 'recto') {
+                photoRecto = base64Image;
+                document.getElementById('img-recto').src = base64Image;
+                document.getElementById('img-recto').style.display = 'block';
+                document.getElementById('text-recto').style.display = 'none';
+            } else {
+                photoSelfie = base64Image;
+                document.getElementById('img-selfie').src = base64Image;
+                document.getElementById('img-selfie').style.display = 'block';
+                document.getElementById('text-selfie').style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function envoyerKYC() {
+        const userId = localStorage.getItem('userId');
+        const type_piece = document.getElementById('type_piece').value;
+        const num_piece = document.getElementById('num_piece').value;
+
+        if (!photoRecto || !photoSelfie || !num_piece) {
+            return alert("Veuillez remplir tous les champs et prendre les photos.");
+        }
+
+        const btn = document.getElementById('btnSoumettre');
+        btn.innerText = "Envoi en cours...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('https://lean3.onrender.com/api/soumettre-kyc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId, type_piece, num_piece, photoRecto, photoSelfie
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert("Dossier soumis avec succès !");
+                window.location.href = 'dashboard.html';
+            } else {
+                alert("Erreur: " + result.message);
+                btn.disabled = false;
+                btn.innerText = "SOUMETTRE MON DOSSIER";
+            }
+        } catch (error) {
+            alert("Erreur de connexion au serveur.");
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

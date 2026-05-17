@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passerelle LeanPay - Échange</title>
+    <style>
+        body { background: #f4f7f6; font-family: sans-serif; padding: 15px; margin: 0; }
+        .header { background: #00008B; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; position: relative; }
+        .back-btn { position: absolute; left: 15px; top: 18px; color: white; text-decoration: none; font-size: 20px; font-weight: bold; }
+        .exchange-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .input-text { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        
+        /* Style bouton répertoire */
+        .btn-repertoire {
+            background: #eef2ff;
+            color: #00008B;
+            border: 1px dashed #00008B;
+            padding: 8px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #calculFrais { 
+            display: none; 
+            color: #00008B; 
+            font-size: 0.85em; 
+            font-weight: bold; 
+            margin-top: -10px; 
+            margin-bottom: 15px; 
+            padding-left: 5px;
+        }
+
+        .btn-submit { width: 100%; background: #ffcc00; border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; color: #333; }
+        
+        .custom-select-container { position: relative; width: 100%; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer; }
+        .custom-select-trigger { display: flex; align-items: center; padding: 12px; font-weight: bold; }
+        .network-logo { width: 28px; height: 28px; margin-right: 12px; border-radius: 6px; object-fit: cover; background: #fff; }
+        .custom-select-container::after { content: '▼'; position: absolute; right: 15px; top: 18px; color: #666; font-size: 12px; }
+        .custom-options { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; z-index: 99; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto; }
+        .custom-select-container.open .custom-options { display: block; }
+        .custom-option { display: flex; align-items: center; padding: 12px; border-top: 1px solid #eee; transition: 0.2s; }
+        .custom-option:hover { background-color: #f0f7ff; }
+        
+        .history-item { 
+            background: #fff; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #ffcc00; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="../dashboard.html" class="back-btn">←</a>
+        <h3 style="margin: 0;">Échanges inter-réseaux</h3>
+    </div>
+
+    <div class="exchange-card">
+        <form id="echangeForm">
+            <label><b>Réseau Source (Débit)</b></label>
+            <div class="custom-select-container" id="selectSource">
+                <div class="custom-select-trigger" id="triggerSource">
+                    <img src="logos/wave.jpg" class="network-logo" alt="Wave">
+                    <span class="selected-text">Wave</span>
+                </div>
+                <div class="custom-options">
+                    <div class="custom-option" data-value="Wave" data-logo="logos/wave.jpg"><img src="logos/wave.jpg" class="network-logo">Wave</div>
+                    <div class="custom-option" data-value="Djamo" data-logo="logos/djamo.jpg"><img src="logos/djamo.jpg" class="network-logo">Djamo</div>
+                    <div class="custom-option" data-value="Moov Money" data-logo="logos/moov.jpg"><img src="logos/moov.jpg" class="network-logo">Moov Money</div>
+                    <div class="custom-option" data-value="MTN Money" data-logo="logos/mtn.jpg"><img src="logos/mtn.jpg" class="network-logo">MTN Money</div>
+                    <div class="custom-option" data-value="Orange Money" data-logo="logos/orange.jpg"><img src="logos/orange.jpg" class="network-logo">Orange Money</div>
+                    <div class="custom-option" data-value="Trésor Money" data-logo="logos/tresor.jpg"><img src="logos/tresor.jpg" class="network-logo">Trésor Money</div>
+                </div>
+                <input type="hidden" name="source" id="realSource" value="Wave">
+            </div>
+            
+            <input type="tel" id="numeroSource" placeholder="Numéro à débiter" required class="input-text">
+
+            <label><b>Réseau Destination (Réception)</b></label>
+            <div class="custom-select-container" id="selectDest">
+                <div class="custom-select-trigger" id="triggerDest">
+                    <img src="logos/orange.jpg" class="network-logo" alt="Orange">
+                    <span class="selected-text">Orange Money</span>
+                </div>
+                <div class="custom-options">
+                    <div class="custom-option" data-value="Wave" data-logo="logos/wave.jpg"><img src="logos/wave.jpg" class="network-logo">Wave</div>
+                    <div class="custom-option" data-value="Djamo" data-logo="logos/djamo.jpg"><img src="logos/djamo.jpg" class="network-logo">Djamo</div>
+                    <div class="custom-option" data-value="Moov Money" data-logo="logos/moov.jpg"><img src="logos/moov.jpg" class="network-logo">Moov Money</div>
+                    <div class="custom-option" data-value="MTN Money" data-logo="logos/mtn.jpg"><img src="logos/mtn.jpg" class="network-logo">MTN Money</div>
+                    <div class="custom-option" data-value="Orange Money" data-logo="logos/orange.jpg"><img src="logos/orange.jpg" class="network-logo">Orange Money</div>
+                    <div class="custom-option" data-value="Trésor Money" data-logo="logos/tresor.jpg"><img src="logos/tresor.jpg" class="network-logo">Trésor Money</div>
+                </div>
+                <input type="hidden" name="destination" id="realDest" value="Orange Money">
+            </div>
+
+            <label><b>Numéro de réception</b></label>
+            <!-- Bouton pour ouvrir le répertoire du téléphone -->
+            <button type="button" class="btn-repertoire" id="btnOpenContacts">
+                <span>📖</span> Choisir dans mes contacts
+            </button>
+            <input type="tel" id="numeroDest" placeholder="Ou entrez le numéro ici" required class="input-text">
+
+            <label><b>Montant (XOF)</b></label>
+            <input type="number" id="montant" placeholder="Ex: 5000" required class="input-text" style="font-weight: bold;">
+            
+            <div id="calculFrais">Total à payer : 0 XOF (frais inclus)</div>
+
+            <button type="submit" class="btn-submit">Initier l'échange</button>
+        </form>
+    </div>
+
+    <div id="historiqueZone" style="margin-top: 25px;">
+        <h4 style="margin-bottom: 10px; color: #333;">Historique des échanges</h4>
+        <div id="listeEchanges">
+            <p style="color: #888; font-size: 0.9em;">Chargement de l'historique...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "10.16.60"; 
+        const userPhone = localStorage.getItem('userPhone') || "00000000"; 
+
+        // --- GESTION DU RÉPERTOIRE TÉLÉPHONIQUE ---
+        const btnContacts = document.getElementById('btnOpenContacts');
+        const inputDest = document.getElementById('numeroDest');
+
+        btnContacts.addEventListener('click', async () => {
+            if ('contacts' in navigator && 'ContactsManager' in window) {
+                try {
+                    const props = ['name', 'tel'];
+                    const opts = { multiple: false };
+                    const contacts = await navigator.contacts.select(props, opts);
+
+                    if (contacts.length > 0 && contacts[0].tel.length > 0) {
+                        // Nettoyage du numéro : garde uniquement les chiffres
+                        let rawNum = contacts[0].tel[0];
+                        inputDest.value = rawNum.replace(/\D/g, ''); 
+                    }
+                } catch (err) {
+                    console.log("Accès contacts annulé.");
+                }
+            } else {
+                alert("Votre navigateur ne supporte pas l'accès au répertoire. Tapez le numéro manuellement.");
+            }
+        });
+
+        // --- CALCUL DYNAMIQUE DES FRAIS (3.3%) ---
+        const montantInput = document.getElementById('montant');
+        const calculFraisDiv = document.getElementById('calculFrais');
+
+        montantInput.addEventListener('input', function() {
+            const montant = parseFloat(this.value);
+            if (!isNaN(montant) && montant > 0) {
+                const total = montant + (montant * 0.033);
+                calculFraisDiv.innerHTML = `Total à payer : ${Math.round(total)} XOF (frais inclus)`;
+                calculFraisDiv.style.display = 'block';
+            } else {
+                calculFraisDiv.style.display = 'none';
+            }
+        });
+
+        // --- GESTION DES SELECTS PERSONNALISÉS ---
+        function setupCustomSelect(selectId, inputHiddenId, triggerId) {
+            const container = document.getElementById(selectId);
+            const trigger = document.getElementById(triggerId);
+            const inputHidden = document.getElementById(inputHiddenId);
+
+            container.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.custom-select-container').forEach(c => {
+                    if(c !== container) c.classList.remove('open');
+                });
+                container.classList.toggle('open');
+            });
+
+            container.querySelectorAll('.custom-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const val = option.getAttribute('data-value');
+                    const logo = option.getAttribute('data-logo');
+                    trigger.innerHTML = `<img src="${logo}" class="network-logo"><span>${val}</span>`;
+                    inputHidden.value = val;
+                });
+            });
+        }
+        setupCustomSelect('selectSource', 'realSource', 'triggerSource');
+        setupCustomSelect('selectDest', 'realDest', 'triggerDest');
+
+        window.onclick = () => document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
+
+        // --- ENVOI DU FORMULAIRE ---
+        document.getElementById('echangeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('.btn-submit');
+            const originalText = btn.innerText;
+            btn.innerText = "Chargement du guichet...";
+            btn.disabled = true;
+
+            const data = {
+                phone: userPhone,
+                montant: document.getElementById('montant').value,
+                numeroDest: document.getElementById('numeroDest').value,
+                source: document.getElementById('realSource').value,
+                destination: document.getElementById('realDest').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/echange`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.success && result.payment_url) {
+                    window.location.href = result.payment_url;
+                } else {
+                    alert("Erreur : " + (result.error || "Impossible de continuer"));
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert("Erreur de connexion au serveur.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- CHARGEMENT DE L'HISTORIQUE ---
+        async function chargerHistorique() {
+            const liste = document.getElementById('listeEchanges');
+            try {
+                const res = await fetch(`${API_URL}/api/historique?phone=${userPhone}`);
+                const data = await res.json();
+                if (data.success && data.transactions.length > 0) {
+                    liste.innerHTML = data.transactions.map(t => `
+                        <div class="history-item">
+                            <div>
+                                <b>Vers : ${t.destinataire_id}</b><br>
+                                <span style="color:#00008B; font-weight:bold;">${t.montant} XOF</span><br>
+                                <small style="color:#999;">${new Date(t.date).toLocaleString('fr-FR')}</small>
+                            </div>
+                            <div style="background:#e7f3ff; color:#007bff; padding:5px 10px; border-radius:6px; font-size:0.7em; font-weight:bold;">RÉUSSI</div>
+                        </div>
+                    `).join('');
+                } else {
+                    liste.innerHTML = '<p style="color:#888;">Aucun échange récent...</p>';
+                }
+            } catch (err) { liste.innerHTML = '<p style="color:red;">Erreur historique.</p>'; }
+        }
+        chargerHistorique();
+    </script>
+</body>
+</html>
