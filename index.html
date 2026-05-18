@@ -13,7 +13,6 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            flex-direction: column; /* Permet d'empiler si nécessaire */
         }
         .container {
             background: white;
@@ -25,7 +24,6 @@
             text-align: center;
             margin: 20px 0;
         }
-        /* Style pour le Logo */
         .logo {
             font-size: 28px;
             font-weight: bold;
@@ -36,11 +34,11 @@
             align-items: center;
             gap: 5px;
         }
-        .logo span { color: #f39c12; } /* Couleur d'accent pour Pay */
+        .logo span { color: #f39c12; }
 
         h1 { color: #333; margin-bottom: 5px; font-size: 22px; }
         p { color: #666; margin-bottom: 25px; font-size: 14px; }
-
+        
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #444; }
         input {
@@ -78,78 +76,58 @@
             font-weight: bold;
         }
         .footer-link a:hover { text-decoration: underline; }
-
-        /* --- JOLI STYLE POUR LE BOUTON APK --- */
-        .btn-download {
-            display: block;
-            margin-top: 25px;
-            padding: 12px;
-            background-color: #f39c12; /* Orange LeanPay */
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            transition: background 0.3s, transform 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        }
-        .btn-download:hover {
-            background-color: #d3830e;
-            transform: translateY(-1px);
-        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="logo">Lean<span>Pay</span></div>
+<div class="container">
+    <div class="logo">Lean<span>Pay</span></div>
+    
+    <h1>Inscription</h1>
+    <p>Créez votre compte sécurisé</p>
+
+    <form id="registerForm">
+        <div class="input-group">
+            <label for="nom">Nom d'utilisateur</label>
+            <input type="text" id="nom" placeholder="Votre nom complet" required>
+        </div>
         
-        <h1>Inscription</h1>
-        <p>Créez votre compte sécurisé</p>
-
-        <form id="registerForm">
-            <div class="input-group">
-                <label>Nom d'utilisateur</label>
-                <input type="text" placeholder="Votre nom complet" required>
-            </div>
-            <div class="input-group">
-                <label>N° de téléphone ☎️</label>
-                <input type="tel" placeholder="Ex: 0102030405" required>
-            </div>
-            <div class="input-group">
-                <label>E-mail</label>
-                <input type="email" placeholder="votre@email.com" required>
-            </div>
-            <div class="input-group">
-                <label>Code PIN (4 chiffres)</label>
-                <input type="password" maxlength="4" placeholder="...." required>
-            </div>
-            <div class="input-group">
-                <label>Confirmer le PIN</label>
-                <input type="password" maxlength="4" placeholder="...." required>
-            </div>
-
-            <button type="submit">S'inscrire</button>
-        </form>
-
-        <div class="footer-link">
-            Déjà inscrit ? <a href="login.html">Se connecter ici</a>
+        <div class="input-group">
+            <label for="telephone">N° de téléphone ☎️</label>
+            <input type="tel" id="telephone" placeholder="Ex: 0102030405" required>
         </div>
 
-<link rel="manifest" href="/manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
-</script>
+        <div class="input-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" placeholder="votre@email.com" required>
+        </div>
+        
+        <div class="input-group">
+            <label for="pin">Code PIN (4 chiffres)</label>
+            <input type="password" id="pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
+        </div>
+        
+        <div class="input-group">
+            <label for="confirmPin">Confirmer le PIN</label>
+            <input type="password" id="confirmPin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
+        </div>
+
+        <button type="submit" id="btnSInscrire">S'inscrire</button>
+    </form>
+
+    <div class="footer-link">
+        Déjà inscrit ? <a href="login.html">Se connecter ici</a>
+    </div>
+</div>
 
 <script>
     const form = document.getElementById('registerForm');
     const btn = document.getElementById('btnSInscrire');
 
-    const API_ENDPOINT = "/api/inscription";
+    // Modification cruciale pour l'APK : Utilisation de l'adresse absolue
+    const API_ENDPOINT = "https://lean-pay.com/api/inscription";
 
-form.onsubmit = async (e) => {
+    form.onsubmit = async (e) => {
         e.preventDefault();
 
         const nom = document.getElementById('nom').value.trim();
@@ -173,27 +151,22 @@ form.onsubmit = async (e) => {
                 body: JSON.stringify({ nom, telephone, email, pin })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Erreur serveur");
-            }
-
             const data = await response.json();
 
             if (data.success) {
-                // Le téléphone écrase l'ID classique pour l'identification
+                // Stockage des infos pour la session locale
                 localStorage.setItem('userId', telephone); 
                 localStorage.setItem('userName', nom);
 
                 alert("Bienvenue sur LeanPay ! Compte créé.");
                 window.location.href = 'dashboard.html';
             } else {
-                alert("Erreur : " + data.message);
+                alert("Erreur : " + (data.message || "Impossible de créer le compte"));
                 resetButton();
             }
         } catch (error) {
-            console.error("Erreur:", error);
-            alert("Erreur de connexion au serveur.");
+            console.error("Erreur connexion:", error);
+            alert("Erreur de connexion au serveur. Vérifiez votre connexion internet.");
             resetButton();
         }
     };
@@ -202,11 +175,10 @@ form.onsubmit = async (e) => {
         btn.disabled = false;
         btn.innerText = "S'inscrire";
     }
+    
+    
 </script>
 
 </body>
 </html>
-
-
-
 
