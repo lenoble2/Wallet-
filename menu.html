@@ -15,6 +15,7 @@
             --border-color: #f0f0f0;
             --danger-color: #e74c3c;
             --primary-color: #002080;
+            --success-color: #27ae60;
         }
 
         body {
@@ -28,7 +29,18 @@
             min-height: 100vh;
         }
 
-        /* Barre de navigation supérieure */
+        /* Style du badge KYC */
+        #kyc-badge {
+            margin-top: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        .badge-valide { background-color: #d4edda; color: var(--success-color); }
+        .badge-non-initie { background-color: #e2e3e5; color: #6c757d; }
+
         .top-nav {
             width: 100%;
             background: white;
@@ -82,7 +94,7 @@
             font-size: 18px;
             font-weight: bold;
             color: var(--text-color);
-            margin: 5px 0;
+            margin: 5px 0 0 0;
         }
 
         .menu-item {
@@ -163,11 +175,12 @@
             <i class="fas fa-th-large"></i> Dashboard
         </a>
     </nav>
-    
+
     <div class="menu-container">
         <header class="profile-header">
             <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile" class="avatar">
             <h2 id="display-user-name" class="user-name">Utilisateur</h2>
+            <div id="kyc-badge">Chargement...</div>
         </header>
 
         <a href="verification.html" class="menu-item">
@@ -205,20 +218,60 @@
         <p>Développé par LENOBLE STUDIO</p>
     </div>
 
+
 <script>
-    const userName = localStorage.getItem('userName');
-    if (userName) {
-        document.getElementById('display-user-name').textContent = userName;
+    async function checkKycStatus() {
+        const userId = localStorage.getItem('userId');
+        const badge = document.getElementById('kyc-badge');
+        
+        if (!userId) {
+            badge.textContent = "NON_CONNECTE";
+            badge.className = "badge-non-initie";
+            return;
+        }
+
+        // Essayer d'utiliser l'URL locale si vous êtes sur le même réseau
+        // Sinon, gardez votre URL Render
+        const API_BASE = "https://lean3.onrender.com"; 
+
+        try {
+            const res = await fetch(`${API_BASE}/api/user/info?id=${userId}`);
+            
+            if (!res.ok) throw new Error("Erreur réseau");
+            
+            const data = await res.json();
+
+            if (data.user) {
+                const status = data.user.statut_kyc ? data.user.statut_kyc.toUpperCase() : "NON_INITIE";
+                
+                badge.textContent = status;
+                badge.className = (status === 'VALIDE') ? "badge-valide" : "badge-non-initie";
+            } else {
+                badge.textContent = "NON_INITIE";
+                badge.className = "badge-non-initie";
+            }
+        } catch (e) {
+            console.error("Erreur:", e);
+            // Si l'API échoue, on affiche au moins le statut stocké localement si disponible
+            const cachedStatus = localStorage.getItem('statut_kyc');
+            badge.textContent = cachedStatus ? cachedStatus.toUpperCase() : "NON_INITIE";
+            badge.className = (cachedStatus === 'valide') ? "badge-valide" : "badge-non-initie";
+        }
     }
 
-    document.getElementById('btn-deconnexion').addEventListener('click', function(e) {
-        e.preventDefault(); 
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userName');
+    window.onload = () => {
+        const userName = localStorage.getItem('userName');
+        if (userName) document.getElementById('display-user-name').textContent = userName;
+        checkKycStatus();
+    };
+
+    document.getElementById('btn-deconnexion').addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.clear();
         window.location.href = "index.html";
     });
 </script>
 
 </body>
 </html>
+
